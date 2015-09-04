@@ -110,11 +110,11 @@
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
     white-space: nowrap;
     overflow: hidden;
-    padding: 1px 0;
 }
 
 .rt-grand-total-cell{
     display: inline-block;
+    padding: 1px 0;
     border-right: 1px solid #f9f2f4;
 }
 

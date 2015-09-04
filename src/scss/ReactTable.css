@@ -110,15 +110,39 @@
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
     white-space: nowrap;
     overflow: hidden;
-    padding: 1px 0;
 }
 
 .rt-grand-total-cell{
     display: inline-block;
+    padding: 1px 0;
     border-right: 1px solid #f9f2f4;
 }
 
 .rt-grand-total-cell-content{
    padding: 0 5px;
 }
+
+.cTContainer { overflow: hidden; padding: 2px; }
+.cTContainer table { table-layout: fixed; }
+.relativeContainer { position: relative; overflow: hidden;}
+.fixedTB { position: absolute; z-index: 11;  }
+.leftContainer { position: absolute; overflow: hidden;  }
+.rightContainer { position: absolute; overflow: hidden;  }
+.leftSBWrapper { position: relative; z-index: 10; }
+.topSBWrapper { position: relative; z-index: 10; width: 100%; }
+.SBWrapper { width: 100%; overflow: auto; }
+
+/*.relativeContainer { position: relative; width: 500px; height: 140px; overflow: hidden; border: 1px solid green; }*/
+
+/*.fixedTB { position: absolute; left: 0px; top: 0px; z-index: 11;  }*/
+
+/*.leftContainer { position: absolute; left: 0px; top: 0px; height: 150px; overflow: hidden;  }*/
+
+/*.rightContainer { position: absolute; left: 71px; top: 0px; width: 429px; overflow: hidden; }*/
+
+/*.leftSBWrapper { position: relative; left: 0px; top: 0px; z-index: 10; }*/
+/*.topSBWrapper { position: relative; left: 0px; top: 0px; z-index: 10; }*/
+
+/*.SBWrapper { width: 429px; height: 140px; overflow: auto; }*/
+
 

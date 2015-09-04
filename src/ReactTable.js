@@ -401,9 +401,36 @@ var ReactTable = React.createClass({
         if (this.props.disableScrolling)
             tableBodyContainerStyle.overflowY = "hidden";
 
-        return (
-            <div id={this.state.uniqueId} className="rt-table-container">
-                {headers}
+
+        var table = null;
+        //if(this.state.fixedColumnIndex> 0){
+        //    var columnDefs = this.state.columnDefs;
+        //
+        //    rowsToDisplay.forEach(function(row){
+        //        var td = row.getValue(this.state.columnDefs[0].colTag);
+        //        console.log(td);
+        //    },this);
+        //
+        //    table = (   <div className="relativeContainer">
+        //        <div className="leftContainer">
+        //            <div className="leftSBWrapper">
+        //                <table >
+        //
+        //                </table>
+        //            </div>
+        //        </div>
+        //        <div className="rightContainer">
+        //            <div className="SBWrapper">
+        //                <table>
+        //
+        //                </table>
+        //            </div>
+        //        </div>
+        //    </div>
+        //
+        //    );
+        //}else{
+            table = (
                 <div style={tableBodyContainerStyle} className="rt-scrollable">
                     <table className="rt-table"  >
                         <tbody>
@@ -411,6 +438,13 @@ var ReactTable = React.createClass({
                         </tbody>
                     </table>
                 </div>
+            );
+        //}
+
+        return (
+            <div id={this.state.uniqueId} className="rt-table-container">
+                {headers}
+                {table}
                 {grandTotal}
                 {buildFooter.call(this, paginationAttr, rasterizedData.length)}
             </div>
@@ -422,6 +456,14 @@ var ReactTable = React.createClass({
  * Represents a row in the table, built from cells
  */
 var Row = React.createClass({
+    getInitialState: function() {
+        return {cells: null};
+    },
+
+    getValue: function(colTag){
+        return this.refs[colTag].getDOMNode().value;
+    },
+
     render: function () {
         const cx = React.addons.classSet;
         var cells = [];
@@ -454,7 +496,7 @@ var Row = React.createClass({
                         grandTotalCellStyle.width = displayContent.length + "em";
                     }
                     cells.push(
-                        <div className={classes + " rt-grand-total-cell"} >
+                        <div className={classes + " rt-grand-total-cell"} key={columnDef.colTag}>
                             <div className="rt-grand-total-cell-content" style={grandTotalCellStyle}>
                                     {displayContent ? displayContent : <span>&nbsp;</span>}
                             </div>
@@ -487,6 +529,8 @@ var Row = React.createClass({
             'summary-selected': this.props.isSelected && !this.props.data.isDetail,
             'group-background': !this.props.data.isDetail
         });
+
+        this.state.cells = cells;
 
         if (isGrandTotal) {
             return (<div className="rt-grand-total">
@@ -643,6 +687,8 @@ function docClick(e) {
 }
 
 function adjustHeaders(adjustCount) {
+    //if(true)
+    //return;
     if(this.state.maxRows == 1){
         //if table has no data, don't change column width
         return;

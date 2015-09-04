@@ -142,6 +142,33 @@ function clickFilterMenu(table,columnDef){
     }
 }
 
+function freezeColumn(){
+    var id = this.state.uniqueId;
+    var headerWidth = $('#'+id+' .rt-headers .rt-headers-container:eq(0)').css('width');
+    var headerHeight = $('#'+id+' .rt-headers .rt-headers-container:eq(0)').css('height');
+    $('#'+id+' .rt-headers').css('margin-left',headerWidth);
+    $('#'+id+' .rt-headers .rt-headers-container:eq(0)').css('position','absolute').css('left',0).css('background-color','inherit');
+
+    $('#'+id+' .rt-grand-total').css('margin-left',headerWidth);
+    var footerHeight = $('#'+id+' .rt-grand-total .rt-grand-total-cell:eq(0)').css('height');
+    $('#'+id+' .rt-grand-total .rt-grand-total-cell:eq(0)').css('position','absolute').css('height',footerHeight).css('left',15).css('background-color','inherit');
+
+
+    var rows = $('#'+id+' tbody').find('tr');
+    var first = true;
+    rows.each(function(idx, row){
+        var width = $(row).find('td:eq(0)').css('width');
+        var height = $(row).find('td:eq(0)').css('height');
+        var padding = $(row).find('td:eq(0)').css('padding');
+        if(first){
+            $('#'+id+' .rt-scrollable').css('margin-left',width);
+            first =false;
+        }
+        $(row).find('td:eq(0)').css('position','absolute').css('left',15).css('background-color','inherit').css('width',width).css('height',height).css('padding',padding);
+    });
+    //adjustHeaders.call(this);
+}
+
 function buildMenu(options) {
     var table = options.table,
         columnDef = options.columnDef,
@@ -223,6 +250,18 @@ function buildMenu(options) {
         remove: [
             React.createElement("div", {className: "menu-item", onClick: table.handleRemove.bind(null, columnDef)}, React.createElement("i", {
                 className: "fa fa-remove"}), " Remove Column")
+        ],
+        freezeColumn : [
+            React.createElement(SubMenu, {
+                menuItem: React.createElement("span", null, React.createElement("i", {className: "fa fa-thumb-tack"}), " Freeze Column"), 
+                subMenu: 
+                    React.createElement("div", {className: "rt-header-menu", style: subMenuStyles}, 
+                        React.createElement("div", {className: "menu-item", onClick: freezeColumn.bind(table)}, 
+                            React.createElement("i", {className: "fa fa-thumb-tack"}), " Freeze to left"), 
+                        React.createElement("div", {className: "menu-item", onClick: table.handleClearAllFilters}, "Unfreeze")
+                    )
+                    }
+            )
         ]
     };
     if (table.props.defaultMenuItems) {
@@ -244,7 +283,7 @@ function buildMenu(options) {
             menuItems.push(React.createElement("div", {className: "separator"}));
             addMenuItems(menuItems, availableDefaultMenuItems.remove);
         }
-
+        addMenuItems(menuItems,availableDefaultMenuItems.freezeColumn);
     }
 
     var customMenuItems = buildCustomMenuItems(table, columnDef);
@@ -1709,7 +1748,7 @@ var Row = React.createClass({displayName: "Row",
                         grandTotalCellStyle.width = displayContent.length + "em";
                     }
                     cells.push(
-                        React.createElement("div", {className: classes + " rt-grand-total-cell"}, 
+                        React.createElement("div", {className: classes + " rt-grand-total-cell", key: columnDef.colTag}, 
                             React.createElement("div", {className: "rt-grand-total-cell-content", style: grandTotalCellStyle}, 
                                     displayContent ? displayContent : React.createElement("span", null, " ")
                             )
