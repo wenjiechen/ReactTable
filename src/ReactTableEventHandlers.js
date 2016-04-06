@@ -185,8 +185,14 @@ function ReactTableHandleColumnFilter(columnDefToFilterBy, e, dontSet) {
         var target = $(e.target);
         if (target.is("span")) {
             filterData = target.text();
+            if(filterData.lastIndexOf('......') == (filterData.length - 6)){
+                filterData = target.parent().find('.omit-content').text();
+            }
         } else {
             filterData =  target.children('span').text();
+            if(filterData.lastIndexOf('......') == (filterData.length - 6)){
+                filterData = target.find('.omit-content').text();
+            }
         }
     }
 

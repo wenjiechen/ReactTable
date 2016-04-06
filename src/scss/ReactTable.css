@@ -132,6 +132,6 @@
 }
 
 /* a omit content label */
-.rt-cell-omit-content { display: none; position: absolute; text-shadow: none; color: #4a5564; border-radius: 2px; background-color: #f0f3f5; z-index: 1;}
+.rt-cell-omit-container { display: none; position: absolute; text-shadow: none; color: #4a5564; border-radius: 2px; background-color: #f0f3f5; z-index: 1;}
 
-.rt-cell-omit-content .omit-content { font-size: 10px; font-weight: bold; margin: 5px; padding: 5px; border-radius: 1px; }
+.rt-cell-omit-container .omit-content { font-size: 10px; font-weight: bold; margin: 5px; padding: 5px; border-radius: 1px; }

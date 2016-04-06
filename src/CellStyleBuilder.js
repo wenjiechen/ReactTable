@@ -42,8 +42,8 @@ function computeCellAlignment(alignment, row, columnDef) {
 function buildLabelForOmitCell(columnDef, row) {
     var displayInstructions = buildCellLookAndFeel(columnDef, row);
     return (
-        <div className="rt-cell-menu">
-            {displayInstructions.value}
+        <div className="rt-cell-omit-container">
+            <div className='omit-content'>{displayInstructions.value}</div>
         </div>
     )
 }
@@ -54,11 +54,10 @@ function buildLabelForOmitCell(columnDef, row) {
  *
  * @param columnDef
  * @param row
- * @param cellContentSize if the content of the cell extends the size, omit the rest content
  * @param isOmitted true do ommit
  * @returns { classes: {}, style: {}, value: {},omitted: boolean}
  */
-function buildCellLookAndFeel(columnDef, row, cellContentSize, isOmitted) {
+function buildCellLookAndFeel(columnDef, row, isOmitted) {
     var results = {classes: {}, styles: {}, value: {}, omitted: false};
     var value = row[columnDef.colTag] || ""; // avoid undefined
 
@@ -82,8 +81,8 @@ function buildCellLookAndFeel(columnDef, row, cellContentSize, isOmitted) {
     if (columnDef.format === 'date')
         value = convertDateNumberToString(columnDef, value);
 
-    if (Number.isInteger(cellContentSize) && isOmitted && value.length > cellContentSize) {
-        value = value.substring(0, cellContentSize - 7) + ' ......';
+    if (isOmitted && Number.isInteger(columnDef.columnSize)  && value.length > columnDef.columnSize) {
+        value = value.substring(0, columnDef.columnSize - 7) + ' ......';
         results.omitted = true;
     }
 
