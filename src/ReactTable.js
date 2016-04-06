@@ -56,7 +56,8 @@ var ReactTable = React.createClass({
         /**
          * misc props
          */
-        pageSize: React.PropTypes.number
+        pageSize: React.PropTypes.number,
+        cellContentSize: React.PropTypes.number
     },
     getDefaultProps: function () {
         return {
@@ -408,7 +409,7 @@ var ReactTable = React.createClass({
         }
         return dataCopy;
     },
-    recreateTable: function(){
+    recreateTable: function () {
         this.state.rootNode = createNewRootNode(this.props, this.state);
     },
     exportDataWithoutSubtotaling: function () {
@@ -526,7 +527,7 @@ var Row = React.createClass({
                 // generate subtotal column
                 cells.push(buildFirstCellForSubtotalRow.call(this, isGrandTotal, !this.props.data.isDetail));
             } else {
-                var displayInstructions = buildCellLookAndFeel(columnDef, this.props.data);
+                var displayInstructions = buildCellLookAndFeel(columnDef, this.props.data, this.props.table.props.cellContentSize, true);
                 var classes = cx(displayInstructions.classes);
                 // easter egg - if isLoading is set to true on columnDef - spinners will show up instead of blanks or content
                 var displayContent = columnDef.isLoading ? "Loading ... " : displayInstructions.value;
@@ -562,6 +563,7 @@ var Row = React.createClass({
                                 this.props.handleColumnFilter(null, columnDef) : null }>
                             {displayContent}
                             {this.props.cellRightClickMenu && this.props.data.isDetail ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs) : null}
+                            {displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data):null}
                         </td>
                     );
                 }
@@ -1086,6 +1088,11 @@ function convertFilterData(filterDataCount, state) {
         }
         state.filterData[key] = arr;
     }
+}
+
+
+function showCellOmitContent(columnDef, event){
+
 }
 
 function openCellMenu(columnDef, event) {

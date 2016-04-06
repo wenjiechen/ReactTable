@@ -39,16 +39,27 @@ function computeCellAlignment(alignment, row, columnDef) {
     return alignment;
 }
 
+function buildLabelForOmitCell(columnDef, row) {
+    var displayInstructions = buildCellLookAndFeel(columnDef, row);
+    return (
+        <div className="rt-cell-menu">
+            {displayInstructions.value}
+        </div>
+    )
+}
+
 /**
  * Determines the style, classes and text formatting of cell content
  * given a column configuartion object and a row of data
  *
  * @param columnDef
  * @param row
- * @returns { classes: {}, style: {}, value: {}}
+ * @param cellContentSize if the content of the cell extends the size, omit the rest content
+ * @param isOmitted true do ommit
+ * @returns { classes: {}, style: {}, value: {},omitted: boolean}
  */
-function buildCellLookAndFeel(columnDef, row) {
-    var results = {classes: {}, styles: {}, value: {}};
+function buildCellLookAndFeel(columnDef, row, cellContentSize, isOmitted) {
+    var results = {classes: {}, styles: {}, value: {}, omitted: false};
     var value = row[columnDef.colTag] || ""; // avoid undefined
 
     columnDef.formatConfig = columnDef.formatConfig != null ? columnDef.formatConfig : buildLAFConfigObject(columnDef);
@@ -70,6 +81,11 @@ function buildCellLookAndFeel(columnDef, row) {
 
     if (columnDef.format === 'date')
         value = convertDateNumberToString(columnDef, value);
+
+    if (Number.isInteger(cellContentSize) && isOmitted && value.length > cellContentSize) {
+        value = value.substring(0, cellContentSize - 7) + ' ......';
+        results.omitted = true;
+    }
 
     // determine alignment
     results.styles.textAlign = computeCellAlignment(formatConfig.alignment, row, columnDef);
