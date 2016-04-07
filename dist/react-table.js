@@ -260,9 +260,11 @@ function buildMenu(options) {
                 subMenu: 
                     React.createElement("div", {className: "rt-header-menu", style: subMenuStyles}, 
                         React.createElement("div", {className: "menu-item", onClick: clickFilterMenu.bind(null, table, columnDef)}, 
-                            React.createElement("i", {className: "fa fa-filter"}), " Filter"), 
-                        columnDef.format == 'number' ?'': React.createElement("div", {className: "menu-item", onClick: clickFilterSearch.bind(null, table, columnDef)}, 
-                            React.createElement("i", {className: "fa fa-search"}), " Search"), 
+                            React.createElement("i", {className: "fa fa-filter"}), 
+                        "Filter"), 
+                        columnDef.format == 'number' ? '' : React.createElement("div", {className: "menu-item", onClick: clickFilterSearch.bind(null, table, columnDef)}, 
+                            React.createElement("i", {className: "fa fa-search"}), 
+                        "Search"), 
                         React.createElement("div", {className: "separator"}), 
                         React.createElement("div", {className: "menu-item", onClick: table.handleClearFilter.bind(null, columnDef)}, "Clear Filter"), 
                         React.createElement("div", {className: "menu-item", onClick: table.handleClearAllFilters}, "Clear All Filters")
@@ -829,9 +831,13 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
         );
     } else if (isSubtotalRow) {
         var noCollapseIcon = data.treeNode.noCollapseIcon;
-
+        var displayInstructions = buildCellLookAndFeel(columnDef, data, true);
         result = (
-            React.createElement("td", {key: firstColTag}, 
+            React.createElement("td", {key: firstColTag, 
+                ref: columnDef.colTag, 
+                onMouseEnter: displayInstructions.omitted ? showCellOmitContent.bind(this, columnDef) : null, 
+                onMouseLeave: displayInstructions.omitted ? hideCellOmitContent.bind(this, columnDef) : null
+            }, 
                 React.createElement("div", null, 
                  hasCheckbox ? React.createElement("span", {style: {'paddingLeft': '10px'}}, 
                     React.createElement("input", {checked: props.data.treeNode.isChecked, type: "checkbox", onClick: clickCheckbox.bind(null, props, true)})
@@ -840,9 +846,10 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                          noCollapseIcon ? '' : data.treeNode.collapsed ? React.createElement("i", {className: "fa fa-plus"}) : React.createElement("i", {className: "fa fa-minus"})
                     ), 
                 "  ", 
-                    React.createElement("strong", null, data[firstColTag]), 
+                    React.createElement("strong", null, displayInstructions.value), 
                     userDefinedElement
-                )
+                ), 
+                displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null
             )
         );
     } else if (!isSubtotalRow) {
@@ -887,14 +894,36 @@ function buildFooter(paginationAttr, rowNum) {
 }
 
 /**
+ * for subtotaling column, add the maximum column
+ * @param columnDefs
+ * @returns {number}
+ */
+function findMaximumColumnSize(columnDefs) {
+    var columnSize = -1;
+    columnDefs.forEach(function (columnDef) {
+        if (columnDef.columnSize) {
+            if (columnDef.columnSize > columnSize) {
+                columnSize = columnDef.columnSize;
+            }
+        }
+    });
+    return columnSize != -1 ? columnSize : null;
+}
+
+
+/**
  *  if has subtotal, add an additional column as the first column, otherwise remove subtotal column
  */
 function addExtraColumnForSubtotalBy() {
     if (this.state.subtotalBy.length > 0 && this.state.columnDefs[0].colTag !== 'subtotalBy') {
+
+        var columnSize = findMaximumColumnSize(this.state.subtotalBy);
         this.state.columnDefs.unshift({
             colTag: "subtotalBy",
-            text: "group"
+            text: "group",
+            columnSize: columnSize
         });
+
         var sortSubtotalByColumn = this.state.sortBy.some(function (sortby) {
             return sortby.colTag === 'subtotalBy';
         });
@@ -2721,14 +2750,24 @@ function hideCellOmitContent(columnDef, event) {
 
 function showCellOmitContent(columnDef, event) {
     event.preventDefault();
+
     var $cell = $(this.refs[columnDef.colTag].getDOMNode());
     var cellPosition = $cell.position();
     var $omitContainer = $cell.find('.rt-cell-omit-container');
-    if (cellPosition.left !== 0) {
+
+    var tableWidth = $(this.props.table.getDOMNode()).width();
+    var labelWidth = $omitContainer.width();
+
+    if (tableWidth - (cellPosition.left + labelWidth) > 20) {
         $omitContainer.css("left", cellPosition.left + "px");
-    }
-    if (cellPosition.right !== 0) {
-        $omitContainer.css("right", cellPosition.right + "px");
+    } else {
+        var cellWidth = $cell.width();
+        if(cellPosition.left + cellWidth > tableWidth){
+            var labelLeft = tableWidth - labelWidth - 20;
+        }else{
+            labelLeft = cellPosition.left + cellWidth - labelWidth;
+        }
+        $omitContainer.css("left", labelLeft + "px");
     }
     $omitContainer.css('display', 'block');
 }
