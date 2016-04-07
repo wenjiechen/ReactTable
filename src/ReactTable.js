@@ -1100,14 +1100,24 @@ function hideCellOmitContent(columnDef, event) {
 
 function showCellOmitContent(columnDef, event) {
     event.preventDefault();
+
     var $cell = $(this.refs[columnDef.colTag].getDOMNode());
     var cellPosition = $cell.position();
     var $omitContainer = $cell.find('.rt-cell-omit-container');
-    if (cellPosition.left !== 0) {
+
+    var tableWidth = $(this.props.table.getDOMNode()).width();
+    var labelWidth = $omitContainer.width();
+
+    if (tableWidth - (cellPosition.left + labelWidth) > 20) {
         $omitContainer.css("left", cellPosition.left + "px");
-    }
-    if (cellPosition.right !== 0) {
-        $omitContainer.css("right", cellPosition.right + "px");
+    } else {
+        var cellWidth = $cell.width();
+        if(cellPosition.left + cellWidth > tableWidth){
+            var labelLeft = tableWidth - labelWidth - 20;
+        }else{
+            labelLeft = cellPosition.left + cellWidth - labelWidth;
+        }
+        $omitContainer.css("left", labelLeft + "px");
     }
     $omitContainer.css('display', 'block');
 }
