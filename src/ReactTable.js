@@ -408,7 +408,7 @@ var ReactTable = React.createClass({
         }
         return dataCopy;
     },
-    recreateTable: function(){
+    recreateTable: function () {
         this.state.rootNode = createNewRootNode(this.props, this.state);
     },
     exportDataWithoutSubtotaling: function () {
@@ -526,7 +526,7 @@ var Row = React.createClass({
                 // generate subtotal column
                 cells.push(buildFirstCellForSubtotalRow.call(this, isGrandTotal, !this.props.data.isDetail));
             } else {
-                var displayInstructions = buildCellLookAndFeel(columnDef, this.props.data);
+                var displayInstructions = buildCellLookAndFeel(columnDef, this.props.data, true);
                 var classes = cx(displayInstructions.classes);
                 // easter egg - if isLoading is set to true on columnDef - spinners will show up instead of blanks or content
                 var displayContent = columnDef.isLoading ? "Loading ... " : displayInstructions.value;
@@ -554,14 +554,17 @@ var Row = React.createClass({
                             className={classes}
                             ref={columnDef.colTag}
                             onClick={columnDef.onCellSelect ? columnDef.onCellSelect.bind(null, this.props.data[columnDef.colTag], columnDef, i) : null}
-                            onContextMenu={this.props.cellRightClickMenu ? openCellMenu.bind(this, columnDef) : this.props.onRightClick ? this.props.onRightClick.bind(null, this.props.data, columnDef) : null}
+                            onContextMenu={this.props.cellRightClickMenu ? openCellMenu.bind(this, columnDef, displayInstructions.omitted) : this.props.onRightClick ? this.props.onRightClick.bind(null, this.props.data, columnDef) : null}
                             style={displayInstructions.styles}
                             key={columnDef.colTag}
+                            onMouseEnter={displayInstructions.omitted ? showCellOmitContent.bind(this, columnDef) : null}
+                            onMouseLeave={displayInstructions.omitted ? hideCellOmitContent.bind(this, columnDef) : null}
                             //if define doubleClickCallback, invoke this first, otherwise check doubleClickFilter
                             onDoubleClick={columnDef.onDoubleClick ? columnDef.onDoubleClick.bind(null, this.props.data[columnDef.colTag], columnDef, i, this.props.data) : this.props.filtering && this.props.filtering.doubleClickCell ?
                                 this.props.handleColumnFilter(null, columnDef) : null }>
                             {displayContent}
                             {this.props.cellRightClickMenu && this.props.data.isDetail ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs) : null}
+                            {displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null}
                         </td>
                     );
                 }
@@ -1088,7 +1091,38 @@ function convertFilterData(filterDataCount, state) {
     }
 }
 
-function openCellMenu(columnDef, event) {
+function hideCellOmitContent(columnDef, event) {
+    event.preventDefault();
+    var $cell = $(this.refs[columnDef.colTag].getDOMNode());
+    var $omitContainer = $cell.find('.rt-cell-omit-container');
+    $omitContainer.css('display', 'none');
+}
+
+function showCellOmitContent(columnDef, event) {
+    event.preventDefault();
+
+    var $cell = $(this.refs[columnDef.colTag].getDOMNode());
+    var cellPosition = $cell.position();
+    var $omitContainer = $cell.find('.rt-cell-omit-container');
+
+    var tableWidth = $(this.props.table.getDOMNode()).width();
+    var labelWidth = $omitContainer.width();
+
+    if (tableWidth - (cellPosition.left + labelWidth) > 20) {
+        $omitContainer.css("left", cellPosition.left + "px");
+    } else {
+        var cellWidth = $cell.width();
+        if(cellPosition.left + cellWidth > tableWidth){
+            var labelLeft = tableWidth - labelWidth - 20;
+        }else{
+            labelLeft = cellPosition.left + cellWidth - labelWidth;
+        }
+        $omitContainer.css("left", labelLeft + "px");
+    }
+    $omitContainer.css('display', 'block');
+}
+
+function openCellMenu(columnDef, hasOmit, event) {
     event.preventDefault();
     var $cell = $(this.refs[columnDef.colTag].getDOMNode());
     var cellPosition = $cell.position();
@@ -1108,6 +1142,11 @@ function openCellMenu(columnDef, event) {
     $menu.hover(null, function hoveroutMenu() {
         $menu.css('display', 'none');
     });
+
+    if (hasOmit) {
+        var $omitContainer = $cell.find('.rt-cell-omit-container');
+        $omitContainer.css('display', 'none');
+    }
 }
 
 function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs) {

@@ -39,16 +39,26 @@ function computeCellAlignment(alignment, row, columnDef) {
     return alignment;
 }
 
+function buildLabelForOmitCell(columnDef, row) {
+    var displayInstructions = buildCellLookAndFeel(columnDef, row);
+    return (
+        React.createElement("div", {className: "rt-cell-omit-container"}, 
+            React.createElement("div", {className: "omit-content"}, displayInstructions.value)
+        )
+    )
+}
+
 /**
  * Determines the style, classes and text formatting of cell content
  * given a column configuartion object and a row of data
  *
  * @param columnDef
  * @param row
- * @returns { classes: {}, style: {}, value: {}}
+ * @param isOmitted true do ommit
+ * @returns { classes: {}, style: {}, value: {},omitted: boolean}
  */
-function buildCellLookAndFeel(columnDef, row) {
-    var results = {classes: {}, styles: {}, value: {}};
+function buildCellLookAndFeel(columnDef, row, isOmitted) {
+    var results = {classes: {}, styles: {}, value: {}, omitted: false};
     var value = row[columnDef.colTag] || ""; // avoid undefined
 
     columnDef.formatConfig = columnDef.formatConfig != null ? columnDef.formatConfig : buildLAFConfigObject(columnDef);
@@ -70,6 +80,11 @@ function buildCellLookAndFeel(columnDef, row) {
 
     if (columnDef.format === 'date')
         value = convertDateNumberToString(columnDef, value);
+
+    if (isOmitted && Number.isInteger(columnDef.columnSize)  && value.length > columnDef.columnSize) {
+        value = value.substring(0, columnDef.columnSize - 7) + ' ......';
+        results.omitted = true;
+    }
 
     // determine alignment
     results.styles.textAlign = computeCellAlignment(formatConfig.alignment, row, columnDef);
@@ -245,9 +260,11 @@ function buildMenu(options) {
                 subMenu: 
                     React.createElement("div", {className: "rt-header-menu", style: subMenuStyles}, 
                         React.createElement("div", {className: "menu-item", onClick: clickFilterMenu.bind(null, table, columnDef)}, 
-                            React.createElement("i", {className: "fa fa-filter"}), " Filter"), 
-                        columnDef.format == 'number' ?'': React.createElement("div", {className: "menu-item", onClick: clickFilterSearch.bind(null, table, columnDef)}, 
-                            React.createElement("i", {className: "fa fa-search"}), " Search"), 
+                            React.createElement("i", {className: "fa fa-filter"}), 
+                        "Filter"), 
+                        columnDef.format == 'number' ? '' : React.createElement("div", {className: "menu-item", onClick: clickFilterSearch.bind(null, table, columnDef)}, 
+                            React.createElement("i", {className: "fa fa-search"}), 
+                        "Search"), 
                         React.createElement("div", {className: "separator"}), 
                         React.createElement("div", {className: "menu-item", onClick: table.handleClearFilter.bind(null, columnDef)}, "Clear Filter"), 
                         React.createElement("div", {className: "menu-item", onClick: table.handleClearAllFilters}, "Clear All Filters")
@@ -814,9 +831,13 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
         );
     } else if (isSubtotalRow) {
         var noCollapseIcon = data.treeNode.noCollapseIcon;
-
+        var displayInstructions = buildCellLookAndFeel(columnDef, data, true);
         result = (
-            React.createElement("td", {key: firstColTag}, 
+            React.createElement("td", {key: firstColTag, 
+                ref: columnDef.colTag, 
+                onMouseEnter: displayInstructions.omitted ? showCellOmitContent.bind(this, columnDef) : null, 
+                onMouseLeave: displayInstructions.omitted ? hideCellOmitContent.bind(this, columnDef) : null
+            }, 
                 React.createElement("div", null, 
                  hasCheckbox ? React.createElement("span", {style: {'paddingLeft': '10px'}}, 
                     React.createElement("input", {checked: props.data.treeNode.isChecked, type: "checkbox", onClick: clickCheckbox.bind(null, props, true)})
@@ -825,9 +846,10 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                          noCollapseIcon ? '' : data.treeNode.collapsed ? React.createElement("i", {className: "fa fa-plus"}) : React.createElement("i", {className: "fa fa-minus"})
                     ), 
                 "  ", 
-                    React.createElement("strong", null, data[firstColTag]), 
+                    React.createElement("strong", null, displayInstructions.value), 
                     userDefinedElement
-                )
+                ), 
+                displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null
             )
         );
     } else if (!isSubtotalRow) {
@@ -872,14 +894,44 @@ function buildFooter(paginationAttr, rowNum) {
 }
 
 /**
+ * for subtotaling column, add the maximum column
+ * @param columnDefs
+ * @returns {number}
+ */
+function findMaximumColumnSize(subtotalBy, columnDefs) {
+    var columnSize = -1;
+    columnDefs.forEach(function (columnDef) {
+        var isSubtotaled = subtotalBy.some(function(subotal){
+            if(subotal.colTag === columnDef.colTag){
+                return true;
+            }else{
+                return false;
+            }
+        });
+
+        if (isSubtotaled && columnDef.columnSize) {
+            if (columnDef.columnSize > columnSize) {
+                columnSize = columnDef.columnSize;
+            }
+        }
+    });
+    return columnSize != -1 ? columnSize : null;
+}
+
+
+/**
  *  if has subtotal, add an additional column as the first column, otherwise remove subtotal column
  */
 function addExtraColumnForSubtotalBy() {
     if (this.state.subtotalBy.length > 0 && this.state.columnDefs[0].colTag !== 'subtotalBy') {
+
+        var columnSize = findMaximumColumnSize(this.state.subtotalBy, this.state.columnDefs);
         this.state.columnDefs.unshift({
             colTag: "subtotalBy",
-            text: "group"
+            text: "group",
+            columnSize: columnSize
         });
+
         var sortSubtotalByColumn = this.state.sortBy.some(function (sortby) {
             return sortby.colTag === 'subtotalBy';
         });
@@ -1040,7 +1092,7 @@ function aggregateColumn(partitionResult, columnDef, subtotalBy, columnDefs) {
     partitionResult = removeFilteredRow(partitionResult);
     // call custom aggregation function or use one of the stock aggregation functions
     if (typeof aggregationMethod === 'function')
-        result = aggregationMethod({data: partitionResult, columnDef: columnDef});
+        result = aggregationMethod({data: partitionResult, columnDef: columnDef, columnDefs: columnDefs, subtotalBy:subtotalBy});
     else
         switch (aggregationMethod) {
             case "sum":
@@ -1058,20 +1110,8 @@ function aggregateColumn(partitionResult, columnDef, subtotalBy, columnDefs) {
             case "count_and_distinct":
                 result = _countAndDistinct({data: partitionResult, columnDef: columnDef});
                 break;
-            case "most_data_points":
-                result = _mostDataPoints({data: partitionResult, columnDef: columnDef});
-                break;
             case "weighted_average":
                 result = _weightedAverage({data: partitionResult, columnDef: columnDef});
-                break;
-            case "non_zero_weighted_average":
-                result = _nonZeroweightedAverage({data: partitionResult, columnDef: columnDef});
-                break;
-            case "distinct_sum":
-                result = _distinctSum({data: partitionResult, columnDef: columnDef});
-                break;
-            case "percentage_contribution":
-                result = _percentageContribution({data: partitionResult, columnDef: columnDef, columnDefs: columnDefs});
                 break;
             default :
                 result = "";
@@ -1088,6 +1128,7 @@ function _straightSumAggregation(options) {
     }
     return result;
 }
+
 function _average(options) {
     return _simpleAverage(options);
 }
@@ -1101,23 +1142,6 @@ function _simpleAverage(options) {
     return count == 0 ? "" : sum / count;
 }
 
-function _nonZeroweightedAverage(options) {
-    var data = options.data, columnDef = options.columnDef, weightBy = options.columnDef.weightBy;
-    var sumProduct = 0;
-    var zeroWeightSum = 0;
-    for (var i = 0; i < data.length; i++) {
-        sumProduct += (data[i][columnDef.colTag] || 0 ) * (data[i][weightBy.colTag] || 0);
-        //find the zero values
-        if (!data[i][columnDef.colTag] || data[i][columnDef.colTag] === 0) {
-            zeroWeightSum += (data[i][weightBy.colTag] || 0);
-        }
-    }
-    var weightSum = _straightSumAggregation({data: data, columnDef: weightBy});
-    weightSum -= zeroWeightSum;
-
-    return weightSum == 0 ? "" : sumProduct / weightSum;
-}
-
 function _weightedAverage(options) {
     var data = options.data, columnDef = options.columnDef, weightBy = options.columnDef.weightBy;
     var sumProduct = 0;
@@ -1126,51 +1150,6 @@ function _weightedAverage(options) {
 
     var weightSum = _straightSumAggregation({data: data, columnDef: weightBy});
     return weightSum == 0 ? "" : sumProduct / weightSum;
-}
-
-function _distinctSum(options) {
-    var data = options.data;
-    var columnDef = options.columnDef;
-    var aggregationLevel = columnDef.aggregationLevel;
-    var result = 0, temp = 0;
-    var distinctValues = {};
-    for (var i = 0; i < data.length; i++) {
-        var levelValue = data[i][aggregationLevel.colTag];
-        distinctValues[levelValue] = data[i][columnDef.colTag];
-    }
-    for (var level in distinctValues) {
-        temp = distinctValues[level] || 0;
-        result += temp;
-    }
-    return result;
-}
-
-function _percentageContribution(options) {
-    var data = options.data;
-    var columnDef = options.columnDef;
-    var numerator = columnDef.numerator;
-    var denominator = columnDef.denominator;
-    if (!denominator || !denominator.colTag || !numerator || !numerator.colTag) {
-        //don't define columns
-        return ""
-    }
-
-    var numeratorValue = _straightSumAggregation({data: data, columnDef: numerator}) || 0;
-
-    var denominatorColumn = null;
-    options.columnDefs.forEach(function (column) {
-        if (column.colTag == denominator.colTag) {
-            denominatorColumn = column;
-        }
-    });
-
-    if (!denominatorColumn) {
-        var denominatorValue = 0;
-    } else {
-        denominatorValue = _distinctSum({data: data, columnDef: denominatorColumn});
-    }
-
-    return denominatorValue == 0 ? "" : ((numeratorValue / denominatorValue) * 100);
 }
 
 function _count(options) {
@@ -1271,19 +1250,6 @@ function _countAndDistinct(options) {
         return _countAndDistinctUnderscoreJS(options);
     else
         return _countAndDistinctPureJS(options);
-}
-
-function _mostDataPoints(options) {
-    var best = {count: 0, index: -1};
-    for (var i = 0; i < options.data.length; i++) {
-        var sizeOfObj = Object.keys(options.data[i]).length;
-        if (sizeOfObj > best.count || (sizeOfObj === best.count &&
-            options.data[i].aggregationTiebreaker > options.data[best.index].aggregationTiebreaker)) {
-            best.count = sizeOfObj;
-            best.index = i;
-        }
-    }
-    return best.index == -1 ? "" : options.data[best.index][options.columnDef.colTag];
 };function exportToExcel(data, filename, table){
     var excel="<table><tr>";
     // Header
@@ -2100,7 +2066,7 @@ var ReactTable = React.createClass({displayName: "ReactTable",
         }
         return dataCopy;
     },
-    recreateTable: function(){
+    recreateTable: function () {
         this.state.rootNode = createNewRootNode(this.props, this.state);
     },
     exportDataWithoutSubtotaling: function () {
@@ -2218,7 +2184,7 @@ var Row = React.createClass({displayName: "Row",
                 // generate subtotal column
                 cells.push(buildFirstCellForSubtotalRow.call(this, isGrandTotal, !this.props.data.isDetail));
             } else {
-                var displayInstructions = buildCellLookAndFeel(columnDef, this.props.data);
+                var displayInstructions = buildCellLookAndFeel(columnDef, this.props.data, true);
                 var classes = cx(displayInstructions.classes);
                 // easter egg - if isLoading is set to true on columnDef - spinners will show up instead of blanks or content
                 var displayContent = columnDef.isLoading ? "Loading ... " : displayInstructions.value;
@@ -2246,14 +2212,17 @@ var Row = React.createClass({displayName: "Row",
                             className: classes, 
                             ref: columnDef.colTag, 
                             onClick: columnDef.onCellSelect ? columnDef.onCellSelect.bind(null, this.props.data[columnDef.colTag], columnDef, i) : null, 
-                            onContextMenu: this.props.cellRightClickMenu ? openCellMenu.bind(this, columnDef) : this.props.onRightClick ? this.props.onRightClick.bind(null, this.props.data, columnDef) : null, 
+                            onContextMenu: this.props.cellRightClickMenu ? openCellMenu.bind(this, columnDef, displayInstructions.omitted) : this.props.onRightClick ? this.props.onRightClick.bind(null, this.props.data, columnDef) : null, 
                             style: displayInstructions.styles, 
                             key: columnDef.colTag, 
+                            onMouseEnter: displayInstructions.omitted ? showCellOmitContent.bind(this, columnDef) : null, 
+                            onMouseLeave: displayInstructions.omitted ? hideCellOmitContent.bind(this, columnDef) : null, 
                             //if define doubleClickCallback, invoke this first, otherwise check doubleClickFilter
                             onDoubleClick: columnDef.onDoubleClick ? columnDef.onDoubleClick.bind(null, this.props.data[columnDef.colTag], columnDef, i, this.props.data) : this.props.filtering && this.props.filtering.doubleClickCell ?
                                 this.props.handleColumnFilter(null, columnDef) : null}, 
                             displayContent, 
-                            this.props.cellRightClickMenu && this.props.data.isDetail ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs) : null
+                            this.props.cellRightClickMenu && this.props.data.isDetail ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs) : null, 
+                            displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null
                         )
                     );
                 }
@@ -2780,7 +2749,38 @@ function convertFilterData(filterDataCount, state) {
     }
 }
 
-function openCellMenu(columnDef, event) {
+function hideCellOmitContent(columnDef, event) {
+    event.preventDefault();
+    var $cell = $(this.refs[columnDef.colTag].getDOMNode());
+    var $omitContainer = $cell.find('.rt-cell-omit-container');
+    $omitContainer.css('display', 'none');
+}
+
+function showCellOmitContent(columnDef, event) {
+    event.preventDefault();
+
+    var $cell = $(this.refs[columnDef.colTag].getDOMNode());
+    var cellPosition = $cell.position();
+    var $omitContainer = $cell.find('.rt-cell-omit-container');
+
+    var tableWidth = $(this.props.table.getDOMNode()).width();
+    var labelWidth = $omitContainer.width();
+
+    if (tableWidth - (cellPosition.left + labelWidth) > 20) {
+        $omitContainer.css("left", cellPosition.left + "px");
+    } else {
+        var cellWidth = $cell.width();
+        if(cellPosition.left + cellWidth > tableWidth){
+            var labelLeft = tableWidth - labelWidth - 20;
+        }else{
+            labelLeft = cellPosition.left + cellWidth - labelWidth;
+        }
+        $omitContainer.css("left", labelLeft + "px");
+    }
+    $omitContainer.css('display', 'block');
+}
+
+function openCellMenu(columnDef, hasOmit, event) {
     event.preventDefault();
     var $cell = $(this.refs[columnDef.colTag].getDOMNode());
     var cellPosition = $cell.position();
@@ -2800,6 +2800,11 @@ function openCellMenu(columnDef, event) {
     $menu.hover(null, function hoveroutMenu() {
         $menu.css('display', 'none');
     });
+
+    if (hasOmit) {
+        var $omitContainer = $cell.find('.rt-cell-omit-container');
+        $omitContainer.css('display', 'none');
+    }
 }
 
 function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs) {
@@ -3074,8 +3079,14 @@ function ReactTableHandleColumnFilter(columnDefToFilterBy, e, dontSet) {
         var target = $(e.target);
         if (target.is("span")) {
             filterData = target.text();
+            if(filterData.lastIndexOf('......') == (filterData.length - 6)){
+                filterData = target.parent().find('.omit-content').text();
+            }
         } else {
             filterData =  target.children('span').text();
+            if(filterData.lastIndexOf('......') == (filterData.length - 6)){
+                filterData = target.find('.omit-content').text();
+            }
         }
     }
 

@@ -122,9 +122,11 @@ function buildMenu(options) {
                 subMenu={
                     <div className="rt-header-menu" style={subMenuStyles}>
                         <div className="menu-item" onClick={clickFilterMenu.bind(null, table, columnDef)}>
-                            <i className="fa fa-filter"></i> Filter</div>
-                        {columnDef.format == 'number' ?'': <div className="menu-item" onClick={clickFilterSearch.bind(null, table, columnDef)}>
-                            <i className="fa fa-search"></i> Search</div>}
+                            <i className="fa fa-filter"></i>
+                        Filter</div>
+                        {columnDef.format == 'number' ? '' : <div className="menu-item" onClick={clickFilterSearch.bind(null, table, columnDef)}>
+                            <i className="fa fa-search"></i>
+                        Search</div>}
                         <div className="separator"/>
                         <div className="menu-item" onClick={table.handleClearFilter.bind(null, columnDef)}>Clear Filter</div>
                         <div className="menu-item" onClick={table.handleClearAllFilters}>Clear All Filters</div>
@@ -691,9 +693,13 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
         );
     } else if (isSubtotalRow) {
         var noCollapseIcon = data.treeNode.noCollapseIcon;
-
+        var displayInstructions = buildCellLookAndFeel(columnDef, data, true);
         result = (
-            <td key={firstColTag} >
+            <td key={firstColTag}
+                ref={columnDef.colTag}
+                onMouseEnter={displayInstructions.omitted ? showCellOmitContent.bind(this, columnDef) : null}
+                onMouseLeave={displayInstructions.omitted ? hideCellOmitContent.bind(this, columnDef) : null}
+            >
                 <div >
                 { hasCheckbox ? <span style={{'paddingLeft': '10px'}}>
                     <input checked={props.data.treeNode.isChecked} type="checkbox" onClick={clickCheckbox.bind(null, props, true)}/>
@@ -702,9 +708,10 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                         { noCollapseIcon ? '' : data.treeNode.collapsed ? <i className="fa fa-plus"/> : <i className="fa fa-minus"/>}
                     </a>
                 &nbsp;&nbsp;
-                    <strong>{data[firstColTag]}</strong>
+                    <strong>{displayInstructions.value}</strong>
                     {userDefinedElement}
                 </div>
+                {displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null}
             </td>
         );
     } else if (!isSubtotalRow) {
@@ -749,14 +756,44 @@ function buildFooter(paginationAttr, rowNum) {
 }
 
 /**
+ * for subtotaling column, add the maximum column
+ * @param columnDefs
+ * @returns {number}
+ */
+function findMaximumColumnSize(subtotalBy, columnDefs) {
+    var columnSize = -1;
+    columnDefs.forEach(function (columnDef) {
+        var isSubtotaled = subtotalBy.some(function(subotal){
+            if(subotal.colTag === columnDef.colTag){
+                return true;
+            }else{
+                return false;
+            }
+        });
+
+        if (isSubtotaled && columnDef.columnSize) {
+            if (columnDef.columnSize > columnSize) {
+                columnSize = columnDef.columnSize;
+            }
+        }
+    });
+    return columnSize != -1 ? columnSize : null;
+}
+
+
+/**
  *  if has subtotal, add an additional column as the first column, otherwise remove subtotal column
  */
 function addExtraColumnForSubtotalBy() {
     if (this.state.subtotalBy.length > 0 && this.state.columnDefs[0].colTag !== 'subtotalBy') {
+
+        var columnSize = findMaximumColumnSize(this.state.subtotalBy, this.state.columnDefs);
         this.state.columnDefs.unshift({
             colTag: "subtotalBy",
-            text: "group"
+            text: "group",
+            columnSize: columnSize
         });
+
         var sortSubtotalByColumn = this.state.sortBy.some(function (sortby) {
             return sortby.colTag === 'subtotalBy';
         });

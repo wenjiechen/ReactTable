@@ -149,7 +149,7 @@ function aggregateColumn(partitionResult, columnDef, subtotalBy, columnDefs) {
     partitionResult = removeFilteredRow(partitionResult);
     // call custom aggregation function or use one of the stock aggregation functions
     if (typeof aggregationMethod === 'function')
-        result = aggregationMethod({data: partitionResult, columnDef: columnDef});
+        result = aggregationMethod({data: partitionResult, columnDef: columnDef, columnDefs: columnDefs, subtotalBy:subtotalBy});
     else
         switch (aggregationMethod) {
             case "sum":
@@ -167,20 +167,8 @@ function aggregateColumn(partitionResult, columnDef, subtotalBy, columnDefs) {
             case "count_and_distinct":
                 result = _countAndDistinct({data: partitionResult, columnDef: columnDef});
                 break;
-            case "most_data_points":
-                result = _mostDataPoints({data: partitionResult, columnDef: columnDef});
-                break;
             case "weighted_average":
                 result = _weightedAverage({data: partitionResult, columnDef: columnDef});
-                break;
-            case "non_zero_weighted_average":
-                result = _nonZeroweightedAverage({data: partitionResult, columnDef: columnDef});
-                break;
-            case "distinct_sum":
-                result = _distinctSum({data: partitionResult, columnDef: columnDef});
-                break;
-            case "percentage_contribution":
-                result = _percentageContribution({data: partitionResult, columnDef: columnDef, columnDefs: columnDefs});
                 break;
             default :
                 result = "";
@@ -197,6 +185,7 @@ function _straightSumAggregation(options) {
     }
     return result;
 }
+
 function _average(options) {
     return _simpleAverage(options);
 }
@@ -210,23 +199,6 @@ function _simpleAverage(options) {
     return count == 0 ? "" : sum / count;
 }
 
-function _nonZeroweightedAverage(options) {
-    var data = options.data, columnDef = options.columnDef, weightBy = options.columnDef.weightBy;
-    var sumProduct = 0;
-    var zeroWeightSum = 0;
-    for (var i = 0; i < data.length; i++) {
-        sumProduct += (data[i][columnDef.colTag] || 0 ) * (data[i][weightBy.colTag] || 0);
-        //find the zero values
-        if (!data[i][columnDef.colTag] || data[i][columnDef.colTag] === 0) {
-            zeroWeightSum += (data[i][weightBy.colTag] || 0);
-        }
-    }
-    var weightSum = _straightSumAggregation({data: data, columnDef: weightBy});
-    weightSum -= zeroWeightSum;
-
-    return weightSum == 0 ? "" : sumProduct / weightSum;
-}
-
 function _weightedAverage(options) {
     var data = options.data, columnDef = options.columnDef, weightBy = options.columnDef.weightBy;
     var sumProduct = 0;
@@ -235,51 +207,6 @@ function _weightedAverage(options) {
 
     var weightSum = _straightSumAggregation({data: data, columnDef: weightBy});
     return weightSum == 0 ? "" : sumProduct / weightSum;
-}
-
-function _distinctSum(options) {
-    var data = options.data;
-    var columnDef = options.columnDef;
-    var aggregationLevel = columnDef.aggregationLevel;
-    var result = 0, temp = 0;
-    var distinctValues = {};
-    for (var i = 0; i < data.length; i++) {
-        var levelValue = data[i][aggregationLevel.colTag];
-        distinctValues[levelValue] = data[i][columnDef.colTag];
-    }
-    for (var level in distinctValues) {
-        temp = distinctValues[level] || 0;
-        result += temp;
-    }
-    return result;
-}
-
-function _percentageContribution(options) {
-    var data = options.data;
-    var columnDef = options.columnDef;
-    var numerator = columnDef.numerator;
-    var denominator = columnDef.denominator;
-    if (!denominator || !denominator.colTag || !numerator || !numerator.colTag) {
-        //don't define columns
-        return ""
-    }
-
-    var numeratorValue = _straightSumAggregation({data: data, columnDef: numerator}) || 0;
-
-    var denominatorColumn = null;
-    options.columnDefs.forEach(function (column) {
-        if (column.colTag == denominator.colTag) {
-            denominatorColumn = column;
-        }
-    });
-
-    if (!denominatorColumn) {
-        var denominatorValue = 0;
-    } else {
-        denominatorValue = _distinctSum({data: data, columnDef: denominatorColumn});
-    }
-
-    return denominatorValue == 0 ? "" : ((numeratorValue / denominatorValue) * 100);
 }
 
 function _count(options) {
@@ -380,17 +307,4 @@ function _countAndDistinct(options) {
         return _countAndDistinctUnderscoreJS(options);
     else
         return _countAndDistinctPureJS(options);
-}
-
-function _mostDataPoints(options) {
-    var best = {count: 0, index: -1};
-    for (var i = 0; i < options.data.length; i++) {
-        var sizeOfObj = Object.keys(options.data[i]).length;
-        if (sizeOfObj > best.count || (sizeOfObj === best.count &&
-            options.data[i].aggregationTiebreaker > options.data[best.index].aggregationTiebreaker)) {
-            best.count = sizeOfObj;
-            best.index = i;
-        }
-    }
-    return best.index == -1 ? "" : options.data[best.index][options.columnDef.colTag];
 }
