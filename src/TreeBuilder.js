@@ -6,7 +6,9 @@
  */
 function createNewRootNode(props, state) {
     var rootNode = buildTreeSkeleton(props, state);
-    recursivelyAggregateNodes(rootNode, state);
+    // recursivelyAggregateNodes(rootNode, state);
+    rootNode.rowData = aggregateSector(rootNode.ultimateChildren, state.columnDefs, state.subtotalBy);
+
 
     rootNode.sortRecursivelyBySortIndex();
     rootNode.foldSubTree();
