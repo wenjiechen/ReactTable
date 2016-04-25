@@ -417,14 +417,21 @@ function toggleFilterBox(table, columnDef) {
     }.bind(this, fip));
 }
 
-function pressedKey(table, colTag, e) {
+function pressedKey(table, columnDef, e) {
     const ESCAPE = 27;
+    var colTag = columnDef.colTag;
+
     if (table.state.filterInPlace[colTag] && e.keyCode == ESCAPE) {
         table.state.filterInPlace[colTag] = false;
         table.setState({
             filterInPlace: table.state.filterInPlace
         });
     }
+
+    if (table.state.filterInPlace[colTag] && e.key === 'Enter') {
+        filter.call(table, table, columnDef);
+    }
+
 }
 
 function pressedKeyInSearch(table, columnDef, e) {
@@ -636,7 +643,7 @@ function buildFilterList(table, columnDef) {
                 React.createElement("select", {
                     className: "rt-" + columnDef.colTag + "-filter-select rt-filter-select", 
                     onChange: addFilter.bind(null, table, columnDef), 
-                    onKeyDown: pressedKey.bind(null, table, columnDef.colTag), 
+                    onKeyDown: pressedKey.bind(null, table, columnDef), 
                     value: filterData.length > 1 ? "default" : filterData[0]}, 
                     filterList
                 ), 
