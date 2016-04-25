@@ -289,13 +289,18 @@ function pressedKey(table, colTag, e) {
     }
 }
 
-function pressedKeyInSearch(table, colTag, e) {
+function pressedKeyInSearch(table, columnDef, e) {
     const ESCAPE = 27;
+    var colTag = columnDef.colTag;
     if (table.state.searchInPlace[colTag] && e.keyCode == ESCAPE) {
         table.state.searchInPlace[colTag] = false;
         table.setState({
             searchInPlace: table.state.searchInPlace
         });
+    }
+    //press enter
+    if(table.state.searchInPlace[colTag] && e.key === 'Enter'){
+        search.call(table, table, columnDef);
     }
 }
 
@@ -424,7 +429,7 @@ function buildSearchBox(table, columnDef) {
             ref={'search-filter-' + columnDef.colTag}>
             <div style={{display: 'block', marginBottom: '2px'}}>
                 <input className={"rt-" + columnDef.colTag + "-filter-select rt-filter-select"}
-                    onKeyDown={pressedKeyInSearch.bind(null, table, columnDef.colTag)}
+                    onKeyDown={pressedKeyInSearch.bind(null, table, columnDef)}
                     onChange={changeSearchText.bind(null, table, columnDef)} />
                 <i style={{float: 'right', 'marginTop': '5px', 'marginRight': '4%'}}
                     className="fa fa-search" onClick={search.bind(table, table, columnDef)}></i>
