@@ -359,10 +359,8 @@ function search(table, columnDef) {
     });
 
     columnDef.isFiltered = true;
-    columnDef.isSearchText = true;
     table.state.searchInPlace[columnDef.colTag] = false;
     table.handleColumnFilter.call(null, columnDef, filterData);
-    columnDef.isSearchText = false;
 
     //hide filter dropdown
     $(this.refs['search-filter-' + columnDef.colTag].getDOMNode()).addClass('rt-hide');

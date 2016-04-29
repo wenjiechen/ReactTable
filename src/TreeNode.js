@@ -176,7 +176,7 @@ function containsWildcart(filterArr) {
  */
 function filterInArray(filterArr, columnDef, row, caseSensitive) {
 
-    if (columnDef.isSearchText || containsWildcart(filterArr)) {
+    if ( containsWildcart(filterArr)) {
         var searchText = filterArr[0];
         searchText = searchText.toLowerCase();
         searchText = searchText.replace(/\?/g, '.?');
@@ -236,7 +236,7 @@ TreeNode.prototype.filterByTextColumn = function (columnDef, textToFilterBy, cas
             else {
                 var row = {};
                 row[columnDef.colTag] = uChild[columnDef.colTag];
-                if (columnDef.format === 'date' && !columnDef.isSearchText) {
+                if (columnDef.format === 'date' && !containsWildcart(textToFilterBy)) {
                     row[columnDef.colTag] = convertDateNumberToString(columnDef, row[columnDef.colTag]);
                     textToFilterBy = textToFilterBy.map(function (filter) {
                         var filterTmp = filter;
