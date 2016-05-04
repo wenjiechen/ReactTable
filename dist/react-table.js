@@ -81,7 +81,7 @@ function buildCellLookAndFeel(columnDef, row, isOmitted) {
     if (columnDef.format === 'date')
         value = convertDateNumberToString(columnDef, value);
 
-    if (isOmitted && Number.isInteger(columnDef.columnSize)  && value.length > columnDef.columnSize) {
+    if (isOmitted && isInt(columnDef.columnSize)  && value.length > columnDef.columnSize) {
         value = value.substring(0, columnDef.columnSize - 7) + ' ......';
         results.omitted = true;
     }
@@ -97,6 +97,12 @@ function buildCellLookAndFeel(columnDef, row, isOmitted) {
 
     return results;
 }
+
+//check if a variable is integer or not
+function isInt(data){
+    return (data === parseInt(data, 10))
+}
+
 /**
  * return default column alignment given data type
  * @param columnDef
