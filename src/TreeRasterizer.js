@@ -3,7 +3,7 @@
  * @param rootNode
  * @return {Array}
  */
-function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow) {
+function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows) {
     var node = options.node, firstColumn = options.firstColumn;
     var flatData = [];
 
@@ -25,8 +25,8 @@ function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow) {
 
     if (exportOutside) {
         if (node.children.length > 0)
-            _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow);
-        else
+            _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows);
+        else if(!skipDetailRows)
             _rasterizeDetailRows(node, flatData,hasSubtotalBy);
     }
     else if (!node.collapsed) {
@@ -68,7 +68,7 @@ function rasterizeTreeForRender() {
  * ----------------------------------------------------------------------
  */
 
-function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow) {
+function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows) {
     var node = options.node, firstColumn = options.firstColumn;
     var i, j, intermediateResult;
     for (i = 0; i < node.children.length; i++) {
@@ -76,7 +76,7 @@ function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, ski
             hideSingleSubtotalChild: options.hideSingleSubtotalChild,
             node: node.children[i],
             firstColumn: firstColumn
-        }, hasSubtotalBy, exportOutside, skipSubtotalRow);
+        }, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows);
         for (j = 0; j < intermediateResult.length; j++) {
             //
             if (!(intermediateResult[j].treeNode && intermediateResult[j].treeNode.hiddenByFilter))

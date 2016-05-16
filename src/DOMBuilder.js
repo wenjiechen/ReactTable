@@ -800,7 +800,8 @@ function addExtraColumnForSubtotalBy() {
         var columnSize = findMaximumColumnSize(this.state.subtotalBy, this.state.columnDefs);
         this.state.columnDefs.unshift({
             colTag: "subtotalBy",
-            text: "group",
+            text: "Group",
+            dataType:"string",
             columnSize: columnSize
         });
 

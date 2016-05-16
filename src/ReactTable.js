@@ -395,7 +395,6 @@ var ReactTable = React.createClass({
             firstColumn: this.state.columnDefs[0]
         }, this.state.subtotalBy.length > 0, true);
 
-        var data = [];
         for (var i = 0; i < dataCopy.length; i++) {
             //shallow copy each row
             var row = dataCopy[i];
@@ -407,6 +406,31 @@ var ReactTable = React.createClass({
             }
         }
         return dataCopy;
+    },
+    exportLeafSubtotaledData: function () {
+        var dataCopy = rasterizeTree({
+            node: this.state.rootNode,
+            firstColumn: this.state.columnDefs[0]
+        }, this.state.subtotalBy.length > 0, true, false, true);
+
+        var data = [];
+        var leafLevel = this.state.subtotalBy.length + 1;
+        for (var i = 1; i < dataCopy.length; i++) {
+            //shallow copy each row
+            if(dataCopy[i].sectorPath.length != leafLevel){
+                continue;
+            }
+            var row = $.extend({}, dataCopy[i]);
+            if (row.treeNode) {
+                delete row.treeNode
+            }
+            if (row.parent) {
+                delete row.parent;
+            }
+            row.subtotalBy = flatSectorPath(row.sectorPath);
+            data.push(row)
+        }
+        return data;
     },
     recreateTable: function () {
         this.state.rootNode = createNewRootNode(this.props, this.state);
@@ -483,7 +507,7 @@ var ReactTable = React.createClass({
             <div id={this.state.uniqueId} className="rt-table-container">
                 {headers}
                 <div ref="scrollBody" style={tableBodyContainerStyle} className="rt-scrollable"
-                    onWheel={this.props.enableScrollPage ? scrollPage.bind(this, paginationAttr) : null}>
+                     onWheel={this.props.enableScrollPage ? scrollPage.bind(this, paginationAttr) : null}>
                     <table ref="tableBody" className="rt-table">
                         <tbody>
                         {rowsToDisplay}
@@ -588,9 +612,10 @@ var Row = React.createClass({
             </div>)
         } else
         // apply extra CSS if specified
-            return (<tr onClick={this.props.onSelect.bind(null, this.props.data)}  onMouseDown={mouseDown.bind(this, this.props.data)}
-                onMouseUp={mouseUp.bind(this, this.props.data)}
-                className={classes} style={this.props.extraStyle}>{cells}</tr>);
+            return (<tr onClick={this.props.onSelect.bind(null, this.props.data)}
+                        onMouseDown={mouseDown.bind(this, this.props.data)}
+                        onMouseUp={mouseUp.bind(this, this.props.data)}
+                        className={classes} style={this.props.extraStyle}>{cells}</tr>);
     }
 });
 
@@ -647,12 +672,12 @@ var PageNavigator = React.createClass({
             <ul className={prevClass} className="pagination pull-right">
                 <li className={nextClass}>
                     <a className={prevClass}
-                        onClick={this.props.handleClick.bind(null, this.props.activeItem - 1)}>&laquo;</a>
+                       onClick={this.props.handleClick.bind(null, this.props.activeItem - 1)}>&laquo;</a>
                 </li>
                 {items}
                 <li className={nextClass}>
                     <a className={nextClass}
-                        onClick={this.props.handleClick.bind(null, this.props.activeItem + 1)}>&raquo;</a>
+                       onClick={this.props.handleClick.bind(null, this.props.activeItem + 1)}>&raquo;</a>
                 </li>
             </ul>
         );
@@ -687,10 +712,10 @@ var SubtotalControl = React.createClass({
                 <div className="menu-item-input" style={{"position": "absolute", "top": "-50%", "right": "100%"}}>
                     <label style={{"display": "block"}}>Enter Bucket(s)</label>
                     <input tabIndex="1" onKeyPress={this.handleKeyPress} onChange={this.handleChange}
-                        placeholder="ex: 1,10,15"/>
+                           placeholder="ex: 1,10,15"/>
                     <a tabIndex="2" style={{"display": "block"}}
-                        onClick={table.handleSubtotalBy.bind(null, columnDef, this.state.userInputBuckets)}
-                        className="btn-link">Ok</a>
+                       onClick={table.handleSubtotalBy.bind(null, columnDef, this.state.userInputBuckets)}
+                       className="btn-link">Ok</a>
                 </div>
 
 
@@ -701,10 +726,10 @@ var SubtotalControl = React.createClass({
                 <div className="menu-item-input" style={{"position": "absolute", "top": "-50%", "right": "100%"}}>
                     <label style={{"display": "block"}}>Enter Bucket(s)</label>
                     <input tabIndex="1" onKeyPress={this.handleKeyPress} onChange={this.handleChange}
-                        placeholder="ex: 1/8/2013, 5/12/2014, 3/10/2015"/>
+                           placeholder="ex: 1/8/2013, 5/12/2014, 3/10/2015"/>
                     <a tabIndex="2" style={{"display": "block"}}
-                        onClick={table.handleSubtotalBy.bind(null, columnDef, this.state.userInputBuckets)}
-                        className="btn-link">Ok</a>
+                       onClick={table.handleSubtotalBy.bind(null, columnDef, this.state.userInputBuckets)}
+                       className="btn-link">Ok</a>
                 </div>
 
         }
@@ -716,7 +741,7 @@ var SubtotalControl = React.createClass({
                 <div>
                     <span>
                         <i className="fa fa-plus"></i>
-                    &nbsp;Add Subtotal</span>
+                        &nbsp;Add Subtotal</span>
                 </div>
                 {subMenuAttachment}
             </div>
@@ -859,7 +884,7 @@ function rowMapper(row) {
         handleColumnFilter={this.handleColumnFilter.bind}
         cellRightClickMenu={this.props.cellRightClickMenu}
         table={this}
-    />);
+        />);
 }
 
 function docClick(e) {
@@ -1112,9 +1137,9 @@ function showCellOmitContent(columnDef, event) {
         $omitContainer.css("left", cellPosition.left + "px");
     } else {
         var cellWidth = $cell.width();
-        if(cellPosition.left + cellWidth > tableWidth){
+        if (cellPosition.left + cellWidth > tableWidth) {
             var labelLeft = tableWidth - labelWidth - 20;
-        }else{
+        } else {
             labelLeft = cellPosition.left + cellWidth - labelWidth;
         }
         $omitContainer.css("left", labelLeft + "px");
@@ -1166,7 +1191,8 @@ function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs) {
 
     if (currentColumnDef.rightClickMenuItems) {
         currentColumnDef.rightClickMenuItems.menus.forEach(function (menu) {
-            menuItems.push(<div className="menu-item" onClick={menu.callback.bind(null, rowData, currentColumnDef, columnDefs)} >{menu.description}</div>);
+            menuItems.push(<div className="menu-item"
+                                onClick={menu.callback.bind(null, rowData, currentColumnDef, columnDefs)}>{menu.description}</div>);
             if (menu.followingSeparator) {
                 menuItems.push(<div className="separator"/>);
             }
@@ -1174,7 +1200,8 @@ function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs) {
     }
     else {
         cellMenu.menus.forEach(function (menu) {
-            menuItems.push(<div className="menu-item" onClick={menu.callback.bind(null, rowData, currentColumnDef, columnDefs)} >{menu.description}</div>);
+            menuItems.push(<div className="menu-item"
+                                onClick={menu.callback.bind(null, rowData, currentColumnDef, columnDefs)}>{menu.description}</div>);
             if (menu.followingSeparator) {
                 menuItems.push(<div className="separator"/>);
             }
@@ -1233,4 +1260,12 @@ function scrollPage(paginationAttr, event) {
     } else {
         this.state.lastScrollTop = scrollTop;
     }
+}
+
+function flatSectorPath(sectorPath){
+    var ret = "";
+    for(var i = 1; i < sectorPath.length; i++){
+        ret += sectorPath[i] + ' - ';
+    }
+    return ret != ''? ret.substring(0,ret.length-3): "";
 }

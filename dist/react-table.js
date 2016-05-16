@@ -944,7 +944,8 @@ function addExtraColumnForSubtotalBy() {
         var columnSize = findMaximumColumnSize(this.state.subtotalBy, this.state.columnDefs);
         this.state.columnDefs.unshift({
             colTag: "subtotalBy",
-            text: "group",
+            text: "Group",
+            dataType:"string",
             columnSize: columnSize
         });
 
@@ -2069,7 +2070,6 @@ var ReactTable = React.createClass({displayName: "ReactTable",
             firstColumn: this.state.columnDefs[0]
         }, this.state.subtotalBy.length > 0, true);
 
-        var data = [];
         for (var i = 0; i < dataCopy.length; i++) {
             //shallow copy each row
             var row = dataCopy[i];
@@ -2081,6 +2081,31 @@ var ReactTable = React.createClass({displayName: "ReactTable",
             }
         }
         return dataCopy;
+    },
+    exportLeafSubtotaledData: function () {
+        var dataCopy = rasterizeTree({
+            node: this.state.rootNode,
+            firstColumn: this.state.columnDefs[0]
+        }, this.state.subtotalBy.length > 0, true, false, true);
+
+        var data = [];
+        var leafLevel = this.state.subtotalBy.length + 1;
+        for (var i = 1; i < dataCopy.length; i++) {
+            //shallow copy each row
+            if(dataCopy[i].sectorPath.length != leafLevel){
+                continue;
+            }
+            var row = $.extend({}, dataCopy[i]);
+            if (row.treeNode) {
+                delete row.treeNode
+            }
+            if (row.parent) {
+                delete row.parent;
+            }
+            row.subtotalBy = flatSectorPath(row.sectorPath);
+            data.push(row)
+        }
+        return data;
     },
     recreateTable: function () {
         this.state.rootNode = createNewRootNode(this.props, this.state);
@@ -2157,7 +2182,7 @@ var ReactTable = React.createClass({displayName: "ReactTable",
             React.createElement("div", {id: this.state.uniqueId, className: "rt-table-container"}, 
                 headers, 
                 React.createElement("div", {ref: "scrollBody", style: tableBodyContainerStyle, className: "rt-scrollable", 
-                    onWheel: this.props.enableScrollPage ? scrollPage.bind(this, paginationAttr) : null}, 
+                     onWheel: this.props.enableScrollPage ? scrollPage.bind(this, paginationAttr) : null}, 
                     React.createElement("table", {ref: "tableBody", className: "rt-table"}, 
                         React.createElement("tbody", null, 
                         rowsToDisplay
@@ -2262,9 +2287,10 @@ var Row = React.createClass({displayName: "Row",
             ))
         } else
         // apply extra CSS if specified
-            return (React.createElement("tr", {onClick: this.props.onSelect.bind(null, this.props.data), onMouseDown: mouseDown.bind(this, this.props.data), 
-                onMouseUp: mouseUp.bind(this, this.props.data), 
-                className: classes, style: this.props.extraStyle}, cells));
+            return (React.createElement("tr", {onClick: this.props.onSelect.bind(null, this.props.data), 
+                        onMouseDown: mouseDown.bind(this, this.props.data), 
+                        onMouseUp: mouseUp.bind(this, this.props.data), 
+                        className: classes, style: this.props.extraStyle}, cells));
     }
 });
 
@@ -2321,12 +2347,12 @@ var PageNavigator = React.createClass({displayName: "PageNavigator",
             React.createElement("ul", {className: prevClass, className: "pagination pull-right"}, 
                 React.createElement("li", {className: nextClass}, 
                     React.createElement("a", {className: prevClass, 
-                        onClick: this.props.handleClick.bind(null, this.props.activeItem - 1)}, "«")
+                       onClick: this.props.handleClick.bind(null, this.props.activeItem - 1)}, "«")
                 ), 
                 items, 
                 React.createElement("li", {className: nextClass}, 
                     React.createElement("a", {className: nextClass, 
-                        onClick: this.props.handleClick.bind(null, this.props.activeItem + 1)}, "»")
+                       onClick: this.props.handleClick.bind(null, this.props.activeItem + 1)}, "»")
                 )
             )
         );
@@ -2361,10 +2387,10 @@ var SubtotalControl = React.createClass({displayName: "SubtotalControl",
                 React.createElement("div", {className: "menu-item-input", style: {"position": "absolute", "top": "-50%", "right": "100%"}}, 
                     React.createElement("label", {style: {"display": "block"}}, "Enter Bucket(s)"), 
                     React.createElement("input", {tabIndex: "1", onKeyPress: this.handleKeyPress, onChange: this.handleChange, 
-                        placeholder: "ex: 1,10,15"}), 
+                           placeholder: "ex: 1,10,15"}), 
                     React.createElement("a", {tabIndex: "2", style: {"display": "block"}, 
-                        onClick: table.handleSubtotalBy.bind(null, columnDef, this.state.userInputBuckets), 
-                        className: "btn-link"}, "Ok")
+                       onClick: table.handleSubtotalBy.bind(null, columnDef, this.state.userInputBuckets), 
+                       className: "btn-link"}, "Ok")
                 )
 
 
@@ -2375,10 +2401,10 @@ var SubtotalControl = React.createClass({displayName: "SubtotalControl",
                 React.createElement("div", {className: "menu-item-input", style: {"position": "absolute", "top": "-50%", "right": "100%"}}, 
                     React.createElement("label", {style: {"display": "block"}}, "Enter Bucket(s)"), 
                     React.createElement("input", {tabIndex: "1", onKeyPress: this.handleKeyPress, onChange: this.handleChange, 
-                        placeholder: "ex: 1/8/2013, 5/12/2014, 3/10/2015"}), 
+                           placeholder: "ex: 1/8/2013, 5/12/2014, 3/10/2015"}), 
                     React.createElement("a", {tabIndex: "2", style: {"display": "block"}, 
-                        onClick: table.handleSubtotalBy.bind(null, columnDef, this.state.userInputBuckets), 
-                        className: "btn-link"}, "Ok")
+                       onClick: table.handleSubtotalBy.bind(null, columnDef, this.state.userInputBuckets), 
+                       className: "btn-link"}, "Ok")
                 )
 
         }
@@ -2390,7 +2416,7 @@ var SubtotalControl = React.createClass({displayName: "SubtotalControl",
                 React.createElement("div", null, 
                     React.createElement("span", null, 
                         React.createElement("i", {className: "fa fa-plus"}), 
-                    " Add Subtotal")
+                        " Add Subtotal")
                 ), 
                 subMenuAttachment
             )
@@ -2533,7 +2559,7 @@ function rowMapper(row) {
         handleColumnFilter: this.handleColumnFilter.bind, 
         cellRightClickMenu: this.props.cellRightClickMenu, 
         table: this}
-    ));
+        ));
 }
 
 function docClick(e) {
@@ -2786,9 +2812,9 @@ function showCellOmitContent(columnDef, event) {
         $omitContainer.css("left", cellPosition.left + "px");
     } else {
         var cellWidth = $cell.width();
-        if(cellPosition.left + cellWidth > tableWidth){
+        if (cellPosition.left + cellWidth > tableWidth) {
             var labelLeft = tableWidth - labelWidth - 20;
-        }else{
+        } else {
             labelLeft = cellPosition.left + cellWidth - labelWidth;
         }
         $omitContainer.css("left", labelLeft + "px");
@@ -2840,7 +2866,8 @@ function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs) {
 
     if (currentColumnDef.rightClickMenuItems) {
         currentColumnDef.rightClickMenuItems.menus.forEach(function (menu) {
-            menuItems.push(React.createElement("div", {className: "menu-item", onClick: menu.callback.bind(null, rowData, currentColumnDef, columnDefs)}, menu.description));
+            menuItems.push(React.createElement("div", {className: "menu-item", 
+                                onClick: menu.callback.bind(null, rowData, currentColumnDef, columnDefs)}, menu.description));
             if (menu.followingSeparator) {
                 menuItems.push(React.createElement("div", {className: "separator"}));
             }
@@ -2848,7 +2875,8 @@ function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs) {
     }
     else {
         cellMenu.menus.forEach(function (menu) {
-            menuItems.push(React.createElement("div", {className: "menu-item", onClick: menu.callback.bind(null, rowData, currentColumnDef, columnDefs)}, menu.description));
+            menuItems.push(React.createElement("div", {className: "menu-item", 
+                                onClick: menu.callback.bind(null, rowData, currentColumnDef, columnDefs)}, menu.description));
             if (menu.followingSeparator) {
                 menuItems.push(React.createElement("div", {className: "separator"}));
             }
@@ -2907,6 +2935,14 @@ function scrollPage(paginationAttr, event) {
     } else {
         this.state.lastScrollTop = scrollTop;
     }
+}
+
+function flatSectorPath(sectorPath){
+    var ret = "";
+    for(var i = 1; i < sectorPath.length; i++){
+        ret += sectorPath[i] + ' - ';
+    }
+    return ret != ''? ret.substring(0,ret.length-3): "";
 }
 ;/**
  * - STOP -
@@ -4213,7 +4249,7 @@ function _hasSortIndex(node) {
  * @param rootNode
  * @return {Array}
  */
-function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow) {
+function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows) {
     var node = options.node, firstColumn = options.firstColumn;
     var flatData = [];
 
@@ -4235,8 +4271,8 @@ function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow) {
 
     if (exportOutside) {
         if (node.children.length > 0)
-            _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow);
-        else
+            _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows);
+        else if(!skipDetailRows)
             _rasterizeDetailRows(node, flatData,hasSubtotalBy);
     }
     else if (!node.collapsed) {
@@ -4278,7 +4314,7 @@ function rasterizeTreeForRender() {
  * ----------------------------------------------------------------------
  */
 
-function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow) {
+function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows) {
     var node = options.node, firstColumn = options.firstColumn;
     var i, j, intermediateResult;
     for (i = 0; i < node.children.length; i++) {
@@ -4286,7 +4322,7 @@ function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, ski
             hideSingleSubtotalChild: options.hideSingleSubtotalChild,
             node: node.children[i],
             firstColumn: firstColumn
-        }, hasSubtotalBy, exportOutside, skipSubtotalRow);
+        }, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows);
         for (j = 0; j < intermediateResult.length; j++) {
             //
             if (!(intermediateResult[j].treeNode && intermediateResult[j].treeNode.hiddenByFilter))
