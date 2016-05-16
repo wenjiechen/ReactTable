@@ -29,23 +29,23 @@ function createNewRootNode(props, state) {
  this.ultimateChildren = [];
  this.collapsed = true
  */
-function createNewNodeFromStrucutre(treeData, titleKey, parent){
-    var node = new TreeNode( parent ? treeData[titleKey] : "Grand Total", parent);
-    _.each(treeData.children, function(child){
-        if( child.children.length > 0 )
+function createNewNodeFromStrucutre(treeData, titleKey, parent) {
+    var node = new TreeNode(parent ? treeData[titleKey] : "Grand Total", parent);
+    _.each(treeData.children, function (child) {
+        if (child.children.length > 0)
             node.children.push(createNewNodeFromStrucutre(child, titleKey, node));
         else
             node.ultimateChildren.push(createNewNodeFromStrucutre(child, titleKey, node));
     });
-    if( node.ultimateChildren.length == 0 )
+    if (node.ultimateChildren.length == 0)
         node.isDetail = true;
     else
         setupChildrenMap(node);
-    _.each(treeData, function(value, key){
-        if( !_.isObject(value) ) {
-            if( !node.rowData )
+    _.each(treeData, function (value, key) {
+        if (!_.isObject(value)) {
+            if (!node.rowData)
                 node.rowData = {};
-            if( node.ultimateChildren.length == 0 )
+            if (node.ultimateChildren.length == 0)
                 node[key] = value;
             else
                 node.rowData[key] = value;
@@ -55,8 +55,8 @@ function createNewNodeFromStrucutre(treeData, titleKey, parent){
     return node;
 }
 
-function setupChildrenMap(node){
-    _.each(node.children, function(child){
+function setupChildrenMap(node) {
+    _.each(node.children, function (child) {
         node.ultimateChildren = node.ultimateChildren.concat(child.ultimateChildren);
         node._childrenSectorNameMap[child.sectorTitle] = child;
     });
@@ -118,6 +118,27 @@ function buildSubtree(lrootNode, newSubtotal, state, partitions) {
 }
 
 /**
+ * recalculate subtotaled row's aggregation data. call this after filtering.
+ * @param lrootNode
+ * @param state
+ * @param level
+ */
+function refreshSubtotaledRowData(lrootNode, state, level) {
+
+    if(level > 0){
+        var subtotalBy = state.subtotalBy[level];
+    }else{
+        subtotalBy = [];
+    }
+
+    lrootNode.rowData = aggregateSector(lrootNode.ultimateChildren, state.columnDefs, subtotalBy);
+
+    for (var i = 0; i < lrootNode.children.length; i++) {
+        refreshSubtotaledRowData(lrootNode.children[i], state, level + 1);
+    }
+}
+
+/**
  * add a new subtotalBy, build subtrees in leaf nodes
  * @param state
  * @param partitions, partitions for subtotalling of date fields
@@ -157,7 +178,7 @@ function destorySubtreesRecursively(lroot) {
  */
 function destorySubtrees(state) {
     destorySubtreesRecursively(state.rootNode);
-    state.rootNode.ultimateChildren.forEach(function(child){
+    state.rootNode.ultimateChildren.forEach(function (child) {
         child.hiddenByFilter = false;
     });
 }
@@ -173,17 +194,19 @@ function buildTreeSkeleton(props, state) {
     if (props.disableGrandTotal)
         rootNode.display = false;
     var subtotalByArr;
-    if(state.subtotalBy != null) {
+    if (state.subtotalBy != null) {
         subtotalByArr = [];
         for (i = 0; i < state.subtotalBy.length; i++) {
-            var result = state.columnDefs.filter(function( colDef ) {
+            var result = state.columnDefs.filter(function (colDef) {
                 return colDef.colTag == state.subtotalBy[i].colTag;
             });
-            if(result[0] != null){
+            if (result[0] != null) {
                 subtotalByArr.push(result[0]);
             }
         }
+        state.subtotalBy = subtotalByArr;
     }
+
     for (i = 0; i < rawData.length; i++) {
         rootNode.appendUltimateChild(rawData[i]);
     }

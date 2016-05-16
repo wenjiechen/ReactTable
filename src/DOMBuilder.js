@@ -682,6 +682,8 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
     var data = props.data, columnDef = props.columnDefs[0], toggleHide = props.toggleHide;
     var firstColTag = columnDef.colTag, userDefinedElement, result;
     var hasCheckbox = props.table.props.hasCheckbox;
+    var subtotalLevelDepth = this.props.table.state.subtotalBy.length;
+
     // styling & ident
     var identLevel = !data.isDetail ? data.sectorPath.length - 1 : data.sectorPath.length;
     var firstCellStyle = {
@@ -709,8 +711,9 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                 ref={columnDef.colTag}
                 onMouseEnter={displayInstructions.omitted ? showCellOmitContent.bind(this, columnDef) : null}
                 onMouseLeave={displayInstructions.omitted ? hideCellOmitContent.bind(this, columnDef) : null}
+                onContextMenu={this.props.cellRightClickMenu ? openCellMenu.bind(this, columnDef, displayInstructions.omitted) : this.props.onRightClick ? this.props.onRightClick.bind(null, this.props.data, columnDef) : null}
             >
-                <div >
+                <div>
                 { hasCheckbox ? <span style={{'paddingLeft': '10px'}}>
                     <input checked={props.data.treeNode.isChecked} type="checkbox" onClick={clickCheckbox.bind(null, props, true)}/>
                 </span> : ''}
@@ -722,6 +725,7 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                     {userDefinedElement}
                 </div>
                 {displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null}
+                {this.props.cellRightClickMenu ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs, subtotalLevelDepth) : null}
             </td>
         );
     } else if (!isSubtotalRow) {

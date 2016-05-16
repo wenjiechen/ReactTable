@@ -185,12 +185,12 @@ function ReactTableHandleColumnFilter(columnDefToFilterBy, e, dontSet) {
         var target = $(e.target);
         if (target.is("span")) {
             filterData = target.text();
-            if(filterData.lastIndexOf('......') == (filterData.length - 6)){
+            if (filterData.lastIndexOf('......') == (filterData.length - 6)) {
                 filterData = target.parent().find('.omit-content').text();
             }
         } else {
-            filterData =  target.children('span').text();
-            if(filterData.lastIndexOf('......') == (filterData.length - 6)){
+            filterData = target.children('span').text();
+            if (filterData.lastIndexOf('......') == (filterData.length - 6)) {
                 filterData = target.find('.omit-content').text();
             }
         }
@@ -227,6 +227,9 @@ function ReactTableHandleColumnFilter(columnDefToFilterBy, e, dontSet) {
     if (!dontSet) {
         buildFilterData.call(this, true);
         this.state.currentFilters.push({colDef: columnDefToFilterBy, filterText: filterData});
+
+        refreshSubtotaledRowData(this.state.rootNode, this.state, -1);
+
         this.setState({
             rootNode: this.state.rootNode,
             currentFilters: this.state.currentFilters,
@@ -588,7 +591,8 @@ function buildFirstColumnLabel(table) {
             }
 
             var arrow = index == table.state.subtotalBy.length - 1 ? "" : " -> ";
-            subtotalHierarchy.push(<span className="rt-header-clickable" onClick={expandSubtotalLevel.bind(table, index)}> {column[0].text}
+            subtotalHierarchy.push(<span className="rt-header-clickable"
+                                         onClick={expandSubtotalLevel.bind(table, index)}> {column[0].text}
                 <span style={{color: 'white'}}>{arrow}</span>
             </span>);
         });

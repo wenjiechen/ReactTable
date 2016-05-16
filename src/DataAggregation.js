@@ -148,6 +148,11 @@ function aggregateColumn(partitionResult, columnDef, subtotalBy, columnDefs) {
 
     partitionResult = removeFilteredRow(partitionResult);
     // call custom aggregation function or use one of the stock aggregation functions
+
+    if(partitionResult.length ==0){
+        return '';
+    }
+
     if (typeof aggregationMethod === 'function')
         result = aggregationMethod({data: partitionResult, columnDef: columnDef, columnDefs: columnDefs, subtotalBy:subtotalBy});
     else
