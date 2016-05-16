@@ -417,7 +417,7 @@ var ReactTable = React.createClass({
         var leafLevel = this.state.subtotalBy.length + 1;
         for (var i = 1; i < dataCopy.length; i++) {
             //shallow copy each row
-            if(dataCopy[i].sectorPath.length != leafLevel){
+            if (dataCopy[i].sectorPath.length != leafLevel) {
                 continue;
             }
             var row = $.extend({}, dataCopy[i]);
@@ -530,6 +530,8 @@ var Row = React.createClass({
         var cells = [];
         var table = this.props.table;
         var isGrandTotal = false;
+        var subtotalLevelDepth = this.props.table.state.subtotalBy.length;
+
         if (!this.props.data.isDetail && this.props.data.sectorPath.length == 1 && this.props.data.sectorPath[0] == 'Grand Total') {
             isGrandTotal = true;
         }
@@ -587,7 +589,7 @@ var Row = React.createClass({
                             onDoubleClick={columnDef.onDoubleClick ? columnDef.onDoubleClick.bind(null, this.props.data[columnDef.colTag], columnDef, i, this.props.data) : this.props.filtering && this.props.filtering.doubleClickCell ?
                                 this.props.handleColumnFilter(null, columnDef) : null }>
                             {displayContent}
-                            {this.props.cellRightClickMenu && this.props.data.isDetail ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs) : null}
+                            {this.props.cellRightClickMenu ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs, subtotalLevelDepth) : null}
                             {displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null}
                         </td>
                     );
@@ -1174,8 +1176,9 @@ function openCellMenu(columnDef, hasOmit, event) {
     }
 }
 
-function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs) {
-    if (!rowData[currentColumnDef.colTag]) {
+function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs, subtotalLevelDepth) {
+    if (rowData.sectorPath && rowData.sectorPath.length != subtotalLevelDepth + 1) {
+        // only add right click men to lowest level of subtotal row
         return null;
     }
 
@@ -1262,10 +1265,10 @@ function scrollPage(paginationAttr, event) {
     }
 }
 
-function flatSectorPath(sectorPath){
+function flatSectorPath(sectorPath) {
     var ret = "";
-    for(var i = 1; i < sectorPath.length; i++){
+    for (var i = 1; i < sectorPath.length; i++) {
         ret += sectorPath[i] + ' - ';
     }
-    return ret != ''? ret.substring(0,ret.length-3): "";
+    return ret != '' ? ret.substring(0, ret.length - 3) : "";
 }

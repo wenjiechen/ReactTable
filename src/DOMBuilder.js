@@ -730,6 +730,7 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                 { hasCheckbox ? <span style={{'paddingLeft': '10px'}}>
                     <input checked={props.data.isChecked} type="checkbox" onClick={clickCheckbox.bind(null, props, false)}/>
                 </span> : ''}
+
             </td>
         );
         return result;
