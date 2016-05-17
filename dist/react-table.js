@@ -228,7 +228,7 @@ function buildMenu(options) {
     var availableDefaultMenuItems = {
         sort: [
             React.createElement(SubMenu, {onMenuClick: table.handleSetSort.bind(null, columnDef, null), table: table, 
-                menuItem: React.createElement("span", null, 
+                     menuItem: React.createElement("span", null, 
                     React.createElement("i", {className: "fa fa-sort"}), 
                 "Sort"), subMenu: 
                 React.createElement("div", {className: "rt-header-menu", style: subMenuStyles}, 
@@ -260,10 +260,10 @@ function buildMenu(options) {
         ],
         filter: [
             React.createElement(SubMenu, {table: table, 
-                menuItem: React.createElement("span", null, 
+                     menuItem: React.createElement("span", null, 
                     React.createElement("i", {className: "fa fa-filter"}), 
                 "Filter"), 
-                subMenu: 
+                     subMenu: 
                     React.createElement("div", {className: "rt-header-menu", style: subMenuStyles}, 
                         React.createElement("div", {className: "menu-item", onClick: clickFilterMenu.bind(null, table, columnDef)}, 
                             React.createElement("i", {className: "fa fa-filter"}), 
@@ -280,11 +280,11 @@ function buildMenu(options) {
         ],
         summarize: [
             React.createElement(SubMenu, {table: table, 
-                onMenuClick: columnDef.format == 'number' || columnDef == 'currency' ? null : table.handleSubtotalBy.bind(null, columnDef, null), 
-                menuItem: React.createElement("span", null, 
+                     onMenuClick: columnDef.format == 'number' || columnDef == 'currency' ? null : table.handleSubtotalBy.bind(null, columnDef, null), 
+                     menuItem: React.createElement("span", null, 
                     React.createElement("i", {className: "fa fa-list-ul"}), 
                 "Subtotal"), 
-                subMenu: columnDef.format == DATE_FORMAT && columnDef.formatInstructions != null ?
+                     subMenu: columnDef.format == DATE_FORMAT && columnDef.formatInstructions != null ?
                     React.createElement("div", {className: "rt-header-menu", style: subMenuStyles}, 
                         React.createElement(SubtotalControl, {table: table, columnDef: columnDef}), 
                         React.createElement(SubtotalControlForDates, {freq: DAILY, table: table, columnDef: columnDef}), 
@@ -303,16 +303,16 @@ function buildMenu(options) {
                         "Clear All Subtotal")
                     )
                     
-            }
+                }
             )
         ],
 
         summarizeClearAll: [
             React.createElement(SubMenu, {table: table, 
-                menuItem: React.createElement("span", null, 
+                     menuItem: React.createElement("span", null, 
                     React.createElement("i", {className: "fa fa-list-ul"}), 
                 "Subtotal"), 
-                subMenu: 
+                     subMenu: 
                     React.createElement("div", {className: "rt-header-menu", style: subMenuStyles}, 
                         React.createElement("div", {className: "menu-item", onClick: table.handleClearSubtotal}, 
                             React.createElement("i", {className: "fa fa-ban"}), 
@@ -324,7 +324,7 @@ function buildMenu(options) {
             React.createElement("div", {className: "menu-item", onClick: table.handleRemove.bind(null, columnDef)}, 
                 React.createElement("i", {
                     className: "fa fa-remove"}), 
-            "Remove Column")
+                "Remove Column")
         ]
     };
     if (table.props.defaultMenuItems) {
@@ -358,22 +358,23 @@ function buildMenu(options) {
             menuItems.push(React.createElement("div", {className: "menu-item", onClick: table.handleDownload.bind(null, "excel")}, 
                 React.createElement("i", {
                     className: "fa fa-file-excel-o"}), 
-            "Download as XLS"));
+                "Download as XLS"));
 
             if (!table.props.disableDownloadPDF) {
                 menuItems.push(React.createElement("div", {className: "menu-item", onClick: table.handleDownload.bind(null, "pdf")}, 
                     React.createElement("i", {className: "fa fa-file-pdf-o"}), 
-                "Download as PDF"));
+                    "Download as PDF"));
             }
         }
 
         menuItems.push(React.createElement("div", {className: "menu-item", onClick: table.handleCollapseAll}, "Collapse" + ' ' +
-        "All"));
+            "All"));
         menuItems.push(React.createElement("div", {className: "menu-item", onClick: table.handleExpandAll}, "Expand All"));
     }
 
     return (
-        React.createElement("div", {style: menuStyle, className: ("rt-header-menu") + (table.state.filterInPlace[columnDef.colTag] || table.state.searchInPlace[columnDef.colTag] ? " rt-hide" : "")}, 
+        React.createElement("div", {style: menuStyle, 
+             className: ("rt-header-menu") + (table.state.filterInPlace[columnDef.colTag] || table.state.searchInPlace[columnDef.colTag] ? " rt-hide" : "")}, 
             menuItems
         )
     );
@@ -450,7 +451,7 @@ function pressedKeyInSearch(table, columnDef, e) {
         });
     }
     //press enter
-    if(table.state.searchInPlace[colTag] && e.key === 'Enter'){
+    if (table.state.searchInPlace[colTag] && e.key === 'Enter') {
         search.call(table, table, columnDef);
     }
 }
@@ -574,14 +575,15 @@ function changeSearchText(table, columnDef, event) {
 function buildSearchBox(table, columnDef) {
 
     return (
-        React.createElement("div", {className: ("rt-select-filter-container ") + (table.state.searchInPlace[columnDef.colTag] ? "" : " rt-hide"), 
+        React.createElement("div", {
+            className: ("rt-select-filter-container ") + (table.state.searchInPlace[columnDef.colTag] ? "" : " rt-hide"), 
             ref: 'search-filter-' + columnDef.colTag}, 
             React.createElement("div", {style: {display: 'block', marginBottom: '2px'}}, 
                 React.createElement("input", {className: "rt-" + columnDef.colTag + "-filter-select rt-filter-select", 
-                    onKeyDown: pressedKeyInSearch.bind(null, table, columnDef), 
-                    onChange: changeSearchText.bind(null, table, columnDef)}), 
+                       onKeyDown: pressedKeyInSearch.bind(null, table, columnDef), 
+                       onChange: changeSearchText.bind(null, table, columnDef)}), 
                 React.createElement("i", {style: {float: 'right', 'marginTop': '5px', 'marginRight': '4%'}, 
-                    className: "fa fa-search", onClick: search.bind(table, table, columnDef)})
+                   className: "fa fa-search", onClick: search.bind(table, table, columnDef)})
             )
         )
     )
@@ -631,9 +633,9 @@ function buildFilterList(table, columnDef) {
                 selectedFilters.push(
                     React.createElement("div", {style: {display: 'block', marginTop: '2px'}}, 
                         React.createElement("input", {className: "rt-" + columnDef.colTag + "-filter-input rt-filter-input", 
-                            type: "text", value: filter, readOnly: true}), 
+                               type: "text", value: filter, readOnly: true}), 
                         React.createElement("i", {style: {float: 'right', 'marginTop': '5px', 'marginRight': '4%'}, className: "fa fa-minus", 
-                            onClick: removeFilter.bind(null, table, columnDef, index)}
+                           onClick: removeFilter.bind(null, table, columnDef, index)}
                         )
                     )
                 )
@@ -641,7 +643,8 @@ function buildFilterList(table, columnDef) {
         }
     });
     return (
-        React.createElement("div", {className: ("rt-select-filter-container ") + (table.state.filterInPlace[columnDef.colTag] ? "" : " rt-hide"), 
+        React.createElement("div", {
+            className: ("rt-select-filter-container ") + (table.state.filterInPlace[columnDef.colTag] ? "" : " rt-hide"), 
             ref: 'select-filter-' + columnDef.colTag}, 
             React.createElement("div", {style: {display: 'block', marginBottom: '2px'}}, 
                 React.createElement("select", {
@@ -652,7 +655,7 @@ function buildFilterList(table, columnDef) {
                     filterList
                 ), 
                 React.createElement("i", {style: {float: 'right', 'marginTop': '5px', 'marginRight': '4%'}, 
-                    className: "fa fa-filter", onClick: filter.bind(table, table, columnDef)})
+                   className: "fa fa-filter", onClick: filter.bind(table, table, columnDef)})
             ), 
             React.createElement("div", {className: ("separator") + ( selectedFilters.length == 0 ? " rt-hide" : "")}), 
             React.createElement("div", {style: {display: 'block'}}, 
@@ -716,20 +719,21 @@ function buildHeaders(table) {
         headerColumns.push(
             React.createElement("div", {className: "rt-headers-container", ref: "header-" + columnDef.colTag}, 
                 React.createElement("div", {onDoubleClick: table.handleSetSort.bind(null, columnDef, null), style: style, 
-                    className: "rt-header-element rt-info-header", key: columnDef.colTag}, 
+                     className: "rt-header-element rt-info-header", key: columnDef.colTag}, 
                     React.createElement("a", {className: textClasses, 
-                        onClick: table.props.filtering && table.props.filtering.disable ? null : toggleFilterBox.bind(table, table, columnDef)}, 
+                       onClick: table.props.filtering && table.props.filtering.disable ? null : toggleFilterBox.bind(table, table, columnDef)}, 
                         buildHeaderLabel(table, columnDef, isFirstColumn), 
                         sortIcon, 
-                        React.createElement("i", {style: {marginLeft: '4px'}, className: ("fa fa-filter fa-inverse") + (isFiltered ? "" : " rt-hide")})
+                        React.createElement("i", {style: {marginLeft: '4px'}, 
+                           className: ("fa fa-filter fa-inverse") + (isFiltered ? "" : " rt-hide")})
                     )
                 ), 
                  table.state.filterInPlace[columnDef.colTag] && columnDef.format === "number" ?
                     (React.createElement("div", {className: numericPanelClasses, ref: "numericFilterPanel-" + columnDef.colTag}, 
                         React.createElement(NumericFilterPanel, {clearFilter: table.handleClearFilter, 
-                            addFilter: table.handleColumnFilter, 
-                            colDef: columnDef, 
-                            currentFilters: table.state.currentFilters}
+                                            addFilter: table.handleColumnFilter, 
+                                            colDef: columnDef, 
+                                            currentFilters: table.state.currentFilters}
                         )
                     )) : null, 
                 table.state.filterInPlace[columnDef.colTag] ? buildFilterList(table, columnDef) : null, 
@@ -769,7 +773,8 @@ function buildHeaders(table) {
 }
 
 function buildHeaderLabel(table, columnDef, isFirstColumn) {
-    return isFirstColumn ? buildFirstColumnLabel(table) : (React.createElement("span", null, columnDef.text, " ", columnDef.isLoading ? React.createElement("i", {className: "fa fa-spinner fa-spin"}) : null));
+    return isFirstColumn ? buildFirstColumnLabel(table) : (
+        React.createElement("span", null, columnDef.text, " ", columnDef.isLoading ? React.createElement("i", {className: "fa fa-spinner fa-spin"}) : null));
 }
 
 function clickCheckbox(props, isSubtotalRow) {
@@ -843,7 +848,7 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
         result = (
             React.createElement("div", {key: firstColTag, className: "rt-grand-total-cell"}, 
                 React.createElement("div", {style: firstCellStyle, className: "rt-grand-total-cell-content"}, 
-                        data[firstColTag] ? data[firstColTag] : React.createElement("span", null, " ")
+                    data[firstColTag] ? data[firstColTag] : React.createElement("span", null, " ")
                 )
             )
         );
@@ -856,15 +861,18 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                 onMouseEnter: displayInstructions.omitted ? showCellOmitContent.bind(this, columnDef) : null, 
                 onMouseLeave: displayInstructions.omitted ? hideCellOmitContent.bind(this, columnDef) : null, 
                 onContextMenu: this.props.cellRightClickMenu ? openCellMenu.bind(this, columnDef, displayInstructions.omitted) : this.props.onRightClick ? this.props.onRightClick.bind(null, this.props.data, columnDef) : null
-            }, 
+                }, 
                 React.createElement("div", null, 
-                 hasCheckbox ? React.createElement("span", {style: {'paddingLeft': '10px'}}, 
-                    React.createElement("input", {checked: props.data.treeNode.isChecked, type: "checkbox", onClick: clickCheckbox.bind(null, props, true)})
+                     hasCheckbox ? React.createElement("span", {style: {'paddingLeft': '10px'}}, 
+                    React.createElement("input", {checked: props.data.treeNode.isChecked, type: "checkbox", 
+                           onClick: clickCheckbox.bind(null, props, true)})
                 ) : '', 
-                    React.createElement("a", {style: firstCellStyle, onClick: toggleHide.bind(null, data), className: "btn-link rt-expansion-link"}, 
-                         noCollapseIcon ? '' : data.treeNode.collapsed ? React.createElement("i", {className: "fa fa-plus"}) : React.createElement("i", {className: "fa fa-minus"})
+                    React.createElement("a", {style: firstCellStyle, onClick: toggleHide.bind(null, data), 
+                       className: "btn-link rt-expansion-link"}, 
+                         noCollapseIcon ? '' : data.treeNode.collapsed ? React.createElement("i", {className: "fa fa-plus"}) :
+                            React.createElement("i", {className: "fa fa-minus"})
                     ), 
-                "  ", 
+                    "  ", 
                     React.createElement("strong", null, displayInstructions.value), 
                     userDefinedElement
                 ), 
@@ -876,7 +884,8 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
         result = (
             React.createElement("td", {key: firstColTag}, 
                  hasCheckbox ? React.createElement("span", {style: {'paddingLeft': '10px'}}, 
-                    React.createElement("input", {checked: props.data.isChecked, type: "checkbox", onClick: clickCheckbox.bind(null, props, false)})
+                    React.createElement("input", {checked: props.data.isChecked, type: "checkbox", 
+                           onClick: clickCheckbox.bind(null, props, false)})
                 ) : ''
 
             )
@@ -922,10 +931,10 @@ function buildFooter(paginationAttr, rowNum) {
 function findMaximumColumnSize(subtotalBy, columnDefs) {
     var columnSize = -1;
     columnDefs.forEach(function (columnDef) {
-        var isSubtotaled = subtotalBy.some(function(subotal){
-            if(subotal.colTag === columnDef.colTag){
+        var isSubtotaled = subtotalBy.some(function (subotal) {
+            if (subotal.colTag === columnDef.colTag) {
                 return true;
-            }else{
+            } else {
                 return false;
             }
         });
@@ -949,8 +958,8 @@ function addExtraColumnForSubtotalBy() {
         var columnSize = findMaximumColumnSize(this.state.subtotalBy, this.state.columnDefs);
         this.state.columnDefs.unshift({
             colTag: "subtotalBy",
-            text: "Group",
-            dataType:"string",
+            text: getSubtotalHeaderLabel.call(this) || 'Group',
+            dataType: "string",
             columnSize: columnSize
         });
 
@@ -963,6 +972,15 @@ function addExtraColumnForSubtotalBy() {
     } else if (this.state.subtotalBy.length == 0 && this.state.columnDefs[0].colTag === 'subtotalBy') {
         this.state.columnDefs.shift();
     }
+}
+
+function getSubtotalHeaderLabel() {
+    var ret = "[ ";
+    this.state.subtotalBy.forEach(function (subtotal) {
+        ret += subtotal.text + ' -> ';
+    });
+
+    return ret.substring(0, ret.length - 4) + ' ]';
 };//Contants used for date subtotalling
 const WEEKLY = "Weekly";
 const MONTHLY = "Monthly";
@@ -2953,9 +2971,9 @@ function scrollPage(paginationAttr, event) {
 function flatSectorPath(sectorPath) {
     var ret = "";
     for (var i = 1; i < sectorPath.length; i++) {
-        ret += sectorPath[i] + ' - ';
+        ret += sectorPath[i] + ' -> ';
     }
-    return ret != '' ? ret.substring(0, ret.length - 3) : "";
+    return ret != '' ? ret.substring(0, ret.length - 4) : "";
 }
 ;/**
  * - STOP -
@@ -3416,8 +3434,14 @@ function ReactTableHandleSubtotalBy(columnDef, partitions, event) {
         hideTreeNodeWhenNoChildrenToShow(this.state.rootNode);
     }
 
-
+    updateSubtoalColumnText.call(this);
     this.setState(newState);
+}
+
+function updateSubtoalColumnText() {
+    if (this.state.columnDefs[0].colTag === 'subtotalBy') {
+        this.state.columnDefs[0].text = getSubtotalHeaderLabel.call(this);
+    }
 }
 
 //get parts for subtotalling of dates

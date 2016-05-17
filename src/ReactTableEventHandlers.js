@@ -457,8 +457,14 @@ function ReactTableHandleSubtotalBy(columnDef, partitions, event) {
         hideTreeNodeWhenNoChildrenToShow(this.state.rootNode);
     }
 
-
+    updateSubtoalColumnText.call(this);
     this.setState(newState);
+}
+
+function updateSubtoalColumnText() {
+    if (this.state.columnDefs[0].colTag === 'subtotalBy') {
+        this.state.columnDefs[0].text = getSubtotalHeaderLabel.call(this);
+    }
 }
 
 //get parts for subtotalling of dates

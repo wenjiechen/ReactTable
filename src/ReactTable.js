@@ -1268,7 +1268,7 @@ function scrollPage(paginationAttr, event) {
 function flatSectorPath(sectorPath) {
     var ret = "";
     for (var i = 1; i < sectorPath.length; i++) {
-        ret += sectorPath[i] + ' - ';
+        ret += sectorPath[i] + ' -> ';
     }
-    return ret != '' ? ret.substring(0, ret.length - 3) : "";
+    return ret != '' ? ret.substring(0, ret.length - 4) : "";
 }

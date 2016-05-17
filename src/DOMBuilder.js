@@ -84,7 +84,7 @@ function buildMenu(options) {
     var availableDefaultMenuItems = {
         sort: [
             <SubMenu onMenuClick={table.handleSetSort.bind(null, columnDef, null)} table={table}
-                menuItem={<span>
+                     menuItem={<span>
                     <i className="fa fa-sort"></i>
                 Sort</span>} subMenu={
                 <div className="rt-header-menu" style={subMenuStyles}>
@@ -115,11 +115,11 @@ function buildMenu(options) {
             </SubMenu>
         ],
         filter: [
-            <SubMenu  table={table}
-                menuItem={<span>
+            <SubMenu table={table}
+                     menuItem={<span>
                     <i className="fa fa-filter"></i>
                 Filter</span>}
-                subMenu={
+                     subMenu={
                     <div className="rt-header-menu" style={subMenuStyles}>
                         <div className="menu-item" onClick={clickFilterMenu.bind(null, table, columnDef)}>
                             <i className="fa fa-filter"></i>
@@ -135,12 +135,12 @@ function buildMenu(options) {
             </SubMenu>
         ],
         summarize: [
-            <SubMenu  table={table}
-                onMenuClick={columnDef.format == 'number' || columnDef == 'currency' ? null : table.handleSubtotalBy.bind(null, columnDef, null)}
-                menuItem={<span>
+            <SubMenu table={table}
+                     onMenuClick={columnDef.format == 'number' || columnDef == 'currency' ? null : table.handleSubtotalBy.bind(null, columnDef, null)}
+                     menuItem={<span>
                     <i className="fa fa-list-ul"></i>
                 Subtotal</span>}
-                subMenu={columnDef.format == DATE_FORMAT && columnDef.formatInstructions != null ?
+                     subMenu={columnDef.format == DATE_FORMAT && columnDef.formatInstructions != null ?
                     <div className="rt-header-menu" style={subMenuStyles}>
                         <SubtotalControl table={table} columnDef={columnDef}/>
                         <SubtotalControlForDates freq= {DAILY} table={table} columnDef={columnDef}/>
@@ -159,16 +159,16 @@ function buildMenu(options) {
                         Clear All Subtotal</div>
                     </div>
                     }
-            >
+                >
             </SubMenu>
         ],
 
         summarizeClearAll: [
-            <SubMenu  table={table}
-                menuItem={<span>
+            <SubMenu table={table}
+                     menuItem={<span>
                     <i className="fa fa-list-ul"></i>
                 Subtotal</span>}
-                subMenu={
+                     subMenu={
                     <div className="rt-header-menu" style={subMenuStyles}>
                         <div className="menu-item" onClick={table.handleClearSubtotal}>
                             <i className="fa fa-ban"></i>
@@ -180,7 +180,7 @@ function buildMenu(options) {
             <div className="menu-item" onClick={table.handleRemove.bind(null, columnDef)}>
                 <i
                     className="fa fa-remove"></i>
-            Remove Column</div>
+                Remove Column</div>
         ]
     };
     if (table.props.defaultMenuItems) {
@@ -214,22 +214,23 @@ function buildMenu(options) {
             menuItems.push(<div className="menu-item" onClick={table.handleDownload.bind(null, "excel")}>
                 <i
                     className="fa fa-file-excel-o"></i>
-            Download as XLS</div>);
+                Download as XLS</div>);
 
             if (!table.props.disableDownloadPDF) {
                 menuItems.push(<div className="menu-item" onClick={table.handleDownload.bind(null, "pdf")}>
                     <i className="fa fa-file-pdf-o"></i>
-                Download as PDF</div>);
+                    Download as PDF</div>);
             }
         }
 
         menuItems.push(<div className="menu-item" onClick={table.handleCollapseAll}>Collapse
-        All</div>);
+            All</div>);
         menuItems.push(<div className="menu-item" onClick={table.handleExpandAll}>Expand All</div>);
     }
 
     return (
-        <div style={menuStyle} className={("rt-header-menu") + (table.state.filterInPlace[columnDef.colTag] || table.state.searchInPlace[columnDef.colTag] ? " rt-hide" : "")}>
+        <div style={menuStyle}
+             className={("rt-header-menu") + (table.state.filterInPlace[columnDef.colTag] || table.state.searchInPlace[columnDef.colTag] ? " rt-hide" : "")}>
             {menuItems}
         </div>
     );
@@ -306,7 +307,7 @@ function pressedKeyInSearch(table, columnDef, e) {
         });
     }
     //press enter
-    if(table.state.searchInPlace[colTag] && e.key === 'Enter'){
+    if (table.state.searchInPlace[colTag] && e.key === 'Enter') {
         search.call(table, table, columnDef);
     }
 }
@@ -430,14 +431,15 @@ function changeSearchText(table, columnDef, event) {
 function buildSearchBox(table, columnDef) {
 
     return (
-        <div className={("rt-select-filter-container ") + (table.state.searchInPlace[columnDef.colTag] ? "" : " rt-hide")}
+        <div
+            className={("rt-select-filter-container ") + (table.state.searchInPlace[columnDef.colTag] ? "" : " rt-hide")}
             ref={'search-filter-' + columnDef.colTag}>
             <div style={{display: 'block', marginBottom: '2px'}}>
                 <input className={"rt-" + columnDef.colTag + "-filter-select rt-filter-select"}
-                    onKeyDown={pressedKeyInSearch.bind(null, table, columnDef)}
-                    onChange={changeSearchText.bind(null, table, columnDef)} />
+                       onKeyDown={pressedKeyInSearch.bind(null, table, columnDef)}
+                       onChange={changeSearchText.bind(null, table, columnDef)}/>
                 <i style={{float: 'right', 'marginTop': '5px', 'marginRight': '4%'}}
-                    className="fa fa-search" onClick={search.bind(table, table, columnDef)}></i>
+                   className="fa fa-search" onClick={search.bind(table, table, columnDef)}></i>
             </div>
         </div>
     )
@@ -487,9 +489,9 @@ function buildFilterList(table, columnDef) {
                 selectedFilters.push(
                     <div style={{display: 'block', marginTop: '2px'}}>
                         <input className={"rt-" + columnDef.colTag + "-filter-input rt-filter-input"}
-                            type="text" value={filter} readOnly />
-                        <i  style={{float: 'right', 'marginTop': '5px', 'marginRight': '4%'}} className={"fa fa-minus"}
-                            onClick={removeFilter.bind(null, table, columnDef, index)}>
+                               type="text" value={filter} readOnly/>
+                        <i style={{float: 'right', 'marginTop': '5px', 'marginRight': '4%'}} className={"fa fa-minus"}
+                           onClick={removeFilter.bind(null, table, columnDef, index)}>
                         </i>
                     </div>
                 )
@@ -497,18 +499,19 @@ function buildFilterList(table, columnDef) {
         }
     });
     return (
-        <div className={("rt-select-filter-container ") + (table.state.filterInPlace[columnDef.colTag] ? "" : " rt-hide")}
+        <div
+            className={("rt-select-filter-container ") + (table.state.filterInPlace[columnDef.colTag] ? "" : " rt-hide")}
             ref={'select-filter-' + columnDef.colTag}>
             <div style={{display: 'block', marginBottom: '2px'}}>
                 <select
                     className={"rt-" + columnDef.colTag + "-filter-select rt-filter-select"}
                     onChange={addFilter.bind(null, table, columnDef)}
                     onKeyDown={pressedKey.bind(null, table, columnDef)}
-                    value={filterData.length > 1 ? "default" : filterData[0]} >
+                    value={filterData.length > 1 ? "default" : filterData[0]}>
                     {filterList}
                 </select>
                 <i style={{float: 'right', 'marginTop': '5px', 'marginRight': '4%'}}
-                    className="fa fa-filter" onClick={filter.bind(table, table, columnDef)}></i>
+                   className="fa fa-filter" onClick={filter.bind(table, table, columnDef)}></i>
             </div>
             <div className={("separator") + ( selectedFilters.length == 0 ? " rt-hide" : "")}></div>
             <div style={{display: 'block'}}>
@@ -572,20 +575,21 @@ function buildHeaders(table) {
         headerColumns.push(
             <div className="rt-headers-container" ref={"header-" + columnDef.colTag}>
                 <div onDoubleClick={table.handleSetSort.bind(null, columnDef, null)} style={style}
-                    className="rt-header-element rt-info-header" key={columnDef.colTag}>
+                     className="rt-header-element rt-info-header" key={columnDef.colTag}>
                     <a className={textClasses}
-                        onClick={table.props.filtering && table.props.filtering.disable ? null : toggleFilterBox.bind(table, table, columnDef)}>
+                       onClick={table.props.filtering && table.props.filtering.disable ? null : toggleFilterBox.bind(table, table, columnDef)}>
                         {buildHeaderLabel(table, columnDef, isFirstColumn)}
                         {sortIcon}
-                        <i style={{marginLeft: '4px'}} className={("fa fa-filter fa-inverse") + (isFiltered ? "" : " rt-hide")}></i>
+                        <i style={{marginLeft: '4px'}}
+                           className={("fa fa-filter fa-inverse") + (isFiltered ? "" : " rt-hide")}></i>
                     </a>
                 </div>
                 { table.state.filterInPlace[columnDef.colTag] && columnDef.format === "number" ?
                     (<div className={numericPanelClasses} ref={"numericFilterPanel-" + columnDef.colTag}>
                         <NumericFilterPanel clearFilter={table.handleClearFilter}
-                            addFilter={table.handleColumnFilter}
-                            colDef={columnDef}
-                            currentFilters={table.state.currentFilters}>
+                                            addFilter={table.handleColumnFilter}
+                                            colDef={columnDef}
+                                            currentFilters={table.state.currentFilters}>
                         </NumericFilterPanel>
                     </div>) : null }
                 {table.state.filterInPlace[columnDef.colTag] ? buildFilterList(table, columnDef) : null}
@@ -625,7 +629,8 @@ function buildHeaders(table) {
 }
 
 function buildHeaderLabel(table, columnDef, isFirstColumn) {
-    return isFirstColumn ? buildFirstColumnLabel(table) : (<span>{columnDef.text} {columnDef.isLoading ? <i className="fa fa-spinner fa-spin"></i> : null}</span>);
+    return isFirstColumn ? buildFirstColumnLabel(table) : (
+        <span>{columnDef.text} {columnDef.isLoading ? <i className="fa fa-spinner fa-spin"></i> : null}</span>);
 }
 
 function clickCheckbox(props, isSubtotalRow) {
@@ -697,9 +702,9 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
             firstCellStyle.width = data[firstColTag].length + "em";
         }
         result = (
-            <div  key={firstColTag} className="rt-grand-total-cell">
+            <div key={firstColTag} className="rt-grand-total-cell">
                 <div style={firstCellStyle} className="rt-grand-total-cell-content">
-                        {data[firstColTag] ? data[firstColTag] : <span>&nbsp;</span>}
+                    {data[firstColTag] ? data[firstColTag] : <span>&nbsp;</span>}
                 </div>
             </div>
         );
@@ -712,15 +717,18 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                 onMouseEnter={displayInstructions.omitted ? showCellOmitContent.bind(this, columnDef) : null}
                 onMouseLeave={displayInstructions.omitted ? hideCellOmitContent.bind(this, columnDef) : null}
                 onContextMenu={this.props.cellRightClickMenu ? openCellMenu.bind(this, columnDef, displayInstructions.omitted) : this.props.onRightClick ? this.props.onRightClick.bind(null, this.props.data, columnDef) : null}
-            >
+                >
                 <div>
-                { hasCheckbox ? <span style={{'paddingLeft': '10px'}}>
-                    <input checked={props.data.treeNode.isChecked} type="checkbox" onClick={clickCheckbox.bind(null, props, true)}/>
+                    { hasCheckbox ? <span style={{'paddingLeft': '10px'}}>
+                    <input checked={props.data.treeNode.isChecked} type="checkbox"
+                           onClick={clickCheckbox.bind(null, props, true)}/>
                 </span> : ''}
-                    <a style={firstCellStyle} onClick={toggleHide.bind(null, data)} className="btn-link rt-expansion-link">
-                        { noCollapseIcon ? '' : data.treeNode.collapsed ? <i className="fa fa-plus"/> : <i className="fa fa-minus"/>}
+                    <a style={firstCellStyle} onClick={toggleHide.bind(null, data)}
+                       className="btn-link rt-expansion-link">
+                        { noCollapseIcon ? '' : data.treeNode.collapsed ? <i className="fa fa-plus"/> :
+                            <i className="fa fa-minus"/>}
                     </a>
-                &nbsp;&nbsp;
+                    &nbsp;&nbsp;
                     <strong>{displayInstructions.value}</strong>
                     {userDefinedElement}
                 </div>
@@ -730,9 +738,10 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
         );
     } else if (!isSubtotalRow) {
         result = (
-            <td key={firstColTag} >
+            <td key={firstColTag}>
                 { hasCheckbox ? <span style={{'paddingLeft': '10px'}}>
-                    <input checked={props.data.isChecked} type="checkbox" onClick={clickCheckbox.bind(null, props, false)}/>
+                    <input checked={props.data.isChecked} type="checkbox"
+                           onClick={clickCheckbox.bind(null, props, false)}/>
                 </span> : ''}
 
             </td>
@@ -778,10 +787,10 @@ function buildFooter(paginationAttr, rowNum) {
 function findMaximumColumnSize(subtotalBy, columnDefs) {
     var columnSize = -1;
     columnDefs.forEach(function (columnDef) {
-        var isSubtotaled = subtotalBy.some(function(subotal){
-            if(subotal.colTag === columnDef.colTag){
+        var isSubtotaled = subtotalBy.some(function (subotal) {
+            if (subotal.colTag === columnDef.colTag) {
                 return true;
-            }else{
+            } else {
                 return false;
             }
         });
@@ -805,8 +814,8 @@ function addExtraColumnForSubtotalBy() {
         var columnSize = findMaximumColumnSize(this.state.subtotalBy, this.state.columnDefs);
         this.state.columnDefs.unshift({
             colTag: "subtotalBy",
-            text: "Group",
-            dataType:"string",
+            text: getSubtotalHeaderLabel.call(this) || 'Group',
+            dataType: "string",
             columnSize: columnSize
         });
 
@@ -819,4 +828,13 @@ function addExtraColumnForSubtotalBy() {
     } else if (this.state.subtotalBy.length == 0 && this.state.columnDefs[0].colTag === 'subtotalBy') {
         this.state.columnDefs.shift();
     }
+}
+
+function getSubtotalHeaderLabel() {
+    var ret = "[ ";
+    this.state.subtotalBy.forEach(function (subtotal) {
+        ret += subtotal.text + ' -> ';
+    });
+
+    return ret.substring(0, ret.length - 4) + ' ]';
 }
