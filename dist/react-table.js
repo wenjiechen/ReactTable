@@ -2084,7 +2084,7 @@ var ReactTable = React.createClass({displayName: "ReactTable",
 
     /*******public API, called outside react table*/
     addFilter: function (columnDefToFilterBy, filterData) {
-        this.handleColumnFilter.call(this, columnDefToFilterBy, filterData);
+        this.handleColumnFilter.call(this, columnDefToFilterBy, filterData,false);
     },
     removeFilter: function ReactTableHandleRemoveFilter(colDef, dontSet) {
         this.handleClearFilter.call(this, colDef, dontSet);
@@ -3389,6 +3389,7 @@ function ReactTableHandleSubtotalBy(columnDef, partitions, event) {
 
             if (partitions == WEEKLY || partitions == MONTHLY || partitions == DAILY || partitions == QUARTERLY || partitions == YEARLY) {
                 columnDef.subtotalByRange = getParts(partitions, start, last);
+                columnDef.partitions = partitions;
             }
             else {     //Use partitions based on user input buckets
                 var parts = [];
@@ -4133,9 +4134,9 @@ TreeNode.prototype.filterByColumn = function (columnDef, textToFilterBy, caseSen
 
 function containsWildcart(filterArr) {
     var searchText = filterArr[0];
-    if (filterArr.length == 1 && (searchText.indexOf('?')> -1 || searchText.indexOf('*')>-1)) {
+    if (filterArr.length == 1 && (searchText.indexOf('?') > -1 || searchText.indexOf('*') > -1)) {
         return true;
-    }else{
+    } else {
         return false;
     }
 }
@@ -4150,7 +4151,7 @@ function containsWildcart(filterArr) {
  */
 function filterInArray(filterArr, columnDef, row, caseSensitive) {
 
-    if ( containsWildcart(filterArr)) {
+    if (containsWildcart(filterArr)) {
         var searchText = filterArr[0];
         searchText = searchText.toLowerCase();
         searchText = searchText.replace(/\?/g, '.?');
@@ -4164,20 +4165,66 @@ function filterInArray(filterArr, columnDef, row, caseSensitive) {
             return true;
         }
     } else {
-        found = null;
-        if (caseSensitive) {
-            found = filterArr.some(function (filterText) {
-                return buildCellLookAndFeel(columnDef, row).value.toString() === filterText;
-            });
+        if (columnDef.format === 'date' && filterArr[0] === 'partitions') {
+            var filterArrTmp = filterArr.slice(1,filterArr.length);
+            found = filterDateInPartitions(filterArrTmp, columnDef, row );
+
         } else {
-            found = filterArr.some(function (filterText) {
-                return buildCellLookAndFeel(columnDef, row).value.toString().toUpperCase() === filterText.toUpperCase();
-            });
+            found = null;
+            if (caseSensitive) {
+                found = filterArr.some(function (filterText) {
+                    return buildCellLookAndFeel(columnDef, row).value.toString() === filterText;
+                });
+            } else {
+                found = filterArr.some(function (filterText) {
+                    return buildCellLookAndFeel(columnDef, row).value.toString().toUpperCase() === filterText.toUpperCase();
+                });
+            }
         }
         return !found;
     }
 }
 
+/**
+ *
+ * @param filterArr
+ * @param columnDef
+ * @param row
+ * @param caseSensitive
+ */
+function filterDateInPartitions(filterArr, columnDef, row){
+    var found = false;
+    switch(columnDef.partitions.toLowerCase()){
+        case 'daily':
+            found = filterArr.some(function (filterText) {
+                return buildCellLookAndFeel(columnDef, row).value.toString().toUpperCase() === filterText.toUpperCase();
+            });
+            break;
+        case 'weekly':
+        case 'quarterly' :
+            var ranges = filterArr[0].split(' - ');
+            var start = new Date(ranges[0]).getTime();
+            var end = new Date(ranges[1]).getTime();
+            var value = row[columnDef.colTag];
+            if(value >= start && value <= end){
+                found = true;
+            }
+            break;
+        case 'monthly':
+            var value = moment(row[columnDef.colTag]).format("MMM YYYY");
+            if(value === filterArr[0]){
+                found = true;
+            }
+            break;
+        case 'yearly':
+            var value = moment(row[columnDef.colTag]).format("YYYY");
+            if(value === filterArr[0]){
+                found = true;
+            }
+            break;
+    }
+    return found;
+}
 /**
  * filter data and recursively check if hidden parent tree node
  * @param columnDef
@@ -4210,7 +4257,7 @@ TreeNode.prototype.filterByTextColumn = function (columnDef, textToFilterBy, cas
             else {
                 var row = {};
                 row[columnDef.colTag] = uChild[columnDef.colTag];
-                if (columnDef.format === 'date' && !containsWildcart(textToFilterBy)) {
+                if (columnDef.format === 'date' && !containsWildcart(textToFilterBy) && textToFilterBy[0] != 'partitions') {
                     row[columnDef.colTag] = convertDateNumberToString(columnDef, row[columnDef.colTag]);
                     textToFilterBy = textToFilterBy.map(function (filter) {
                         var filterTmp = filter;

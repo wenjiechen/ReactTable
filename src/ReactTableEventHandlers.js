@@ -412,6 +412,7 @@ function ReactTableHandleSubtotalBy(columnDef, partitions, event) {
 
             if (partitions == WEEKLY || partitions == MONTHLY || partitions == DAILY || partitions == QUARTERLY || partitions == YEARLY) {
                 columnDef.subtotalByRange = getParts(partitions, start, last);
+                columnDef.partitions = partitions;
             }
             else {     //Use partitions based on user input buckets
                 var parts = [];

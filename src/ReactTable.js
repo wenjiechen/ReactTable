@@ -381,7 +381,7 @@ var ReactTable = React.createClass({
 
     /*******public API, called outside react table*/
     addFilter: function (columnDefToFilterBy, filterData) {
-        this.handleColumnFilter.call(this, columnDefToFilterBy, filterData);
+        this.handleColumnFilter.call(this, columnDefToFilterBy, filterData,false);
     },
     removeFilter: function ReactTableHandleRemoveFilter(colDef, dontSet) {
         this.handleClearFilter.call(this, colDef, dontSet);
