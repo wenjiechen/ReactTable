@@ -2084,7 +2084,7 @@ var ReactTable = React.createClass({displayName: "ReactTable",
 
     /*******public API, called outside react table*/
     addFilter: function (columnDefToFilterBy, filterData) {
-        this.handleColumnFilter.call(this, columnDefToFilterBy, filterData,false);
+        this.handleColumnFilter.call(this, columnDefToFilterBy, filterData, false);
     },
     removeFilter: function ReactTableHandleRemoveFilter(colDef, dontSet) {
         this.handleClearFilter.call(this, colDef, dontSet);
@@ -2138,11 +2138,11 @@ var ReactTable = React.createClass({displayName: "ReactTable",
     recreateTable: function () {
         this.state.rootNode = createNewRootNode(this.props, this.state);
     },
-    exportDataWithoutSubtotaling: function () {
+    exportDataWithoutSubtotaling: function (showHiddenSingleDetailRow) {
         var dataCopy = rasterizeTree({
             node: this.state.rootNode,
             firstColumn: this.state.columnDefs[0]
-        }, this.state.subtotalBy.length > 0, true, true);
+        }, this.state.subtotalBy.length > 0, true, true, false, showHiddenSingleDetailRow);
 
         var data = [];
         for (var i = 0; i < dataCopy.length; i++) {
@@ -4360,7 +4360,7 @@ function _hasSortIndex(node) {
  * @param rootNode
  * @return {Array}
  */
-function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows) {
+function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow, skipDetailRows, showHiddenSingleDetailRow) {
     var node = options.node, firstColumn = options.firstColumn;
     var flatData = [];
 
@@ -4371,9 +4371,12 @@ function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow,sk
 
     if (node.ultimateChildren.length == 1 && options.hideSingleSubtotalChild && node.parent) {
         // if the subtotal level only has one child, hide this child. only show subtotal row;
+
         node.ultimateChildren[0].hiddenBySingleSubtotalRow = true;
         //node.ultimateChildren[0].hiddenByFilter = true;
+
         if (node.hasChild()) {
+            //if the node is not leaf node, add plus sign
             node.noCollapseIcon = false;
         } else {
             node.noCollapseIcon = true;
@@ -4382,15 +4385,14 @@ function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow,sk
 
     if (exportOutside) {
         if (node.children.length > 0)
-            _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows);
-        else if(!skipDetailRows)
-            _rasterizeDetailRows(node, flatData,hasSubtotalBy);
-    }
-    else if (!node.collapsed) {
+            _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow, skipDetailRows, showHiddenSingleDetailRow);
+        else if (!skipDetailRows)
+            _rasterizeDetailRows(node, flatData, hasSubtotalBy, showHiddenSingleDetailRow);
+    } else if (!node.collapsed) {
         if (node.children.length > 0)
-            _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow);
+            _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow, showHiddenSingleDetailRow);
         else
-            _rasterizeDetailRows(node, flatData,hasSubtotalBy);
+            _rasterizeDetailRows(node, flatData, hasSubtotalBy, showHiddenSingleDetailRow);
     }
 
     return flatData;
@@ -4409,12 +4411,12 @@ function rasterizeTreeForRender() {
     }, this.state.subtotalBy.length > 0);
 
     //those attributes of state is used by render() of ReactTable
-	if(this.props.disableGrandTotal == true) {
-		this.state.maxRows = data.length;
-	}else{ 
-		this.state.maxRows = data.length - 1;// maxRows is referenced later during event handling to determine upperVisualBound
-		this.state.grandTotal = data.splice(0, 1).map(rowMapper, this);
-	}
+    if (this.props.disableGrandTotal == true) {
+        this.state.maxRows = data.length;
+    } else {
+        this.state.maxRows = data.length - 1;// maxRows is referenced later during event handling to determine upperVisualBound
+        this.state.grandTotal = data.splice(0, 1).map(rowMapper, this);
+    }
     this.state.rasterizedData = data;
     this.state.buildRasterizedData = false;
 }
@@ -4425,7 +4427,7 @@ function rasterizeTreeForRender() {
  * ----------------------------------------------------------------------
  */
 
-function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows) {
+function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, skipSubtotalRow, skipDetailRows, showHiddenSingleDetailRow) {
     var node = options.node, firstColumn = options.firstColumn;
     var i, j, intermediateResult;
     for (i = 0; i < node.children.length; i++) {
@@ -4433,7 +4435,7 @@ function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, ski
             hideSingleSubtotalChild: options.hideSingleSubtotalChild,
             node: node.children[i],
             firstColumn: firstColumn
-        }, hasSubtotalBy, exportOutside, skipSubtotalRow,skipDetailRows);
+        }, hasSubtotalBy, exportOutside, skipSubtotalRow, skipDetailRows, showHiddenSingleDetailRow);
         for (j = 0; j < intermediateResult.length; j++) {
             //
             if (!(intermediateResult[j].treeNode && intermediateResult[j].treeNode.hiddenByFilter))
@@ -4442,17 +4444,36 @@ function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, ski
     }
 }
 
-function _rasterizeDetailRows(node, flatData,hasSubtotalBy) {
+/**
+ *
+ * @param node
+ * @param flatData
+ * @param hasSubtotalBy
+ * @param showHiddenSingleDetailRow
+ * @private
+ */
+function _rasterizeDetailRows(node, flatData, hasSubtotalBy, showHiddenSingleDetailRow) {
     for (var i = 0; i < node.ultimateChildren.length; i++) {
         var detailRow = node.ultimateChildren[i];
-        //set to true only when has subtotaling
-        var hiddenBySingleSubtotalRow = hasSubtotalBy &&detailRow.hiddenBySingleSubtotalRow;
-        if (!(detailRow.hiddenByFilter || hiddenBySingleSubtotalRow)) {
-            detailRow.sectorPath = node.rowData.sectorPath;
-            detailRow.isDetail = true;
-            detailRow.parent = node;
-            detailRow.indexInParent = i;
-            flatData.push(detailRow);
+
+        if (showHiddenSingleDetailRow) {
+            if (!detailRow.hiddenByFilter) {
+                detailRow.sectorPath = node.rowData.sectorPath;
+                detailRow.isDetail = true;
+                detailRow.parent = node;
+                detailRow.indexInParent = i;
+                flatData.push(detailRow);
+            }
+        } else {
+            //set to true only when has subtotaling
+            var hiddenBySingleSubtotalRow = hasSubtotalBy && detailRow.hiddenBySingleSubtotalRow;
+            if (!(detailRow.hiddenByFilter || hiddenBySingleSubtotalRow)) {
+                detailRow.sectorPath = node.rowData.sectorPath;
+                detailRow.isDetail = true;
+                detailRow.parent = node;
+                detailRow.indexInParent = i;
+                flatData.push(detailRow);
+            }
         }
     }
 }

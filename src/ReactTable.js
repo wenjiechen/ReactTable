@@ -381,7 +381,7 @@ var ReactTable = React.createClass({
 
     /*******public API, called outside react table*/
     addFilter: function (columnDefToFilterBy, filterData) {
-        this.handleColumnFilter.call(this, columnDefToFilterBy, filterData,false);
+        this.handleColumnFilter.call(this, columnDefToFilterBy, filterData, false);
     },
     removeFilter: function ReactTableHandleRemoveFilter(colDef, dontSet) {
         this.handleClearFilter.call(this, colDef, dontSet);
@@ -435,11 +435,11 @@ var ReactTable = React.createClass({
     recreateTable: function () {
         this.state.rootNode = createNewRootNode(this.props, this.state);
     },
-    exportDataWithoutSubtotaling: function () {
+    exportDataWithoutSubtotaling: function (showHiddenSingleDetailRow) {
         var dataCopy = rasterizeTree({
             node: this.state.rootNode,
             firstColumn: this.state.columnDefs[0]
-        }, this.state.subtotalBy.length > 0, true, true);
+        }, this.state.subtotalBy.length > 0, true, true, false, showHiddenSingleDetailRow);
 
         var data = [];
         for (var i = 0; i < dataCopy.length; i++) {
