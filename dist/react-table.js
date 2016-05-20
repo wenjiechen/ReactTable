@@ -4371,9 +4371,7 @@ function rasterizeTree(options, hasSubtotalBy, exportOutside, skipSubtotalRow, s
 
     if (node.ultimateChildren.length == 1 && options.hideSingleSubtotalChild && node.parent) {
         // if the subtotal level only has one child, hide this child. only show subtotal row;
-
         node.ultimateChildren[0].hiddenBySingleSubtotalRow = true;
-        //node.ultimateChildren[0].hiddenByFilter = true;
 
         if (node.hasChild()) {
             //if the node is not leaf node, add plus sign
