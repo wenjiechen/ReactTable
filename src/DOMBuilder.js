@@ -687,7 +687,7 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
     var data = props.data, columnDef = props.columnDefs[0], toggleHide = props.toggleHide;
     var firstColTag = columnDef.colTag, userDefinedElement, result;
     var hasCheckbox = props.table.props.hasCheckbox;
-    var subtotalLevelDepth = this.props.table.state.subtotalBy.length;
+    var subtotalBy = this.props.table.state.subtotalBy;
 
     // styling & ident
     var identLevel = !data.isDetail ? data.sectorPath.length - 1 : data.sectorPath.length;
@@ -733,7 +733,7 @@ function buildFirstCellForSubtotalRow(isGrandTotal, isSubtotalRow) {
                     {userDefinedElement}
                 </div>
                 {displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null}
-                {this.props.cellRightClickMenu ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs, subtotalLevelDepth) : null}
+                {this.props.cellRightClickMenu ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs, subtotalBy) : null}
             </td>
         );
     } else if (!isSubtotalRow) {

@@ -530,7 +530,7 @@ var Row = React.createClass({
         var cells = [];
         var table = this.props.table;
         var isGrandTotal = false;
-        var subtotalLevelDepth = this.props.table.state.subtotalBy.length;
+        var subtotalBy = this.props.table.state.subtotalBy;
 
         if (!this.props.data.isDetail && this.props.data.sectorPath.length == 1 && this.props.data.sectorPath[0] == 'Grand Total') {
             isGrandTotal = true;
@@ -589,7 +589,7 @@ var Row = React.createClass({
                             onDoubleClick={columnDef.onDoubleClick ? columnDef.onDoubleClick.bind(null, this.props.data[columnDef.colTag], columnDef, i, this.props.data) : this.props.filtering && this.props.filtering.doubleClickCell ?
                                 this.props.handleColumnFilter(null, columnDef) : null }>
                             {displayContent}
-                            {this.props.cellRightClickMenu ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs, subtotalLevelDepth) : null}
+                            {this.props.cellRightClickMenu ? buildCellMenu(this.props.cellRightClickMenu, this.props.data, columnDef, this.props.columnDefs, subtotalBy) : null}
                             {displayInstructions.omitted ? buildLabelForOmitCell(columnDef, this.props.data) : null}
                         </td>
                     );
@@ -1176,8 +1176,8 @@ function openCellMenu(columnDef, hasOmit, event) {
     }
 }
 
-function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs, subtotalLevelDepth) {
-    if (rowData.sectorPath && rowData.sectorPath.length != subtotalLevelDepth + 1) {
+function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs, subtotalBy) {
+    if (rowData.sectorPath && rowData.sectorPath.length != subtotalBy.length + 1) {
         // only add right click men to lowest level of subtotal row
         return null;
     }
@@ -1195,7 +1195,7 @@ function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs, subtotal
     if (currentColumnDef.rightClickMenuItems) {
         currentColumnDef.rightClickMenuItems.menus.forEach(function (menu) {
             menuItems.push(<div className="menu-item"
-                                onClick={menu.callback.bind(null, rowData, currentColumnDef, columnDefs)}>{menu.description}</div>);
+                                onClick={menu.callback.bind(null, rowData, currentColumnDef, columnDefs,subtotalBy)}>{menu.description}</div>);
             if (menu.followingSeparator) {
                 menuItems.push(<div className="separator"/>);
             }
@@ -1204,7 +1204,7 @@ function buildCellMenu(cellMenu, rowData, currentColumnDef, columnDefs, subtotal
     else {
         cellMenu.menus.forEach(function (menu) {
             menuItems.push(<div className="menu-item"
-                                onClick={menu.callback.bind(null, rowData, currentColumnDef, columnDefs)}>{menu.description}</div>);
+                                onClick={menu.callback.bind(null, rowData, currentColumnDef, columnDefs,subtotalBy)}>{menu.description}</div>);
             if (menu.followingSeparator) {
                 menuItems.push(<div className="separator"/>);
             }
