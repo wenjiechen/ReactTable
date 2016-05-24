@@ -470,7 +470,7 @@ function buildFilterList(table, columnDef) {
     for (var i = 0; i < filterData.length; i++) {
         var label = filterData[i];
         if (columnDef.format == DATE_FORMAT && columnDef.formatInstructions != null) {
-            label = moment(parseInt(label)).format(columnDef.formatInstructions)
+            label = moment(parseInt(label)).utcOffset(0).format(columnDef.formatInstructions)
         }
 
         filterList.push(
@@ -483,7 +483,7 @@ function buildFilterList(table, columnDef) {
         if (filter.colDef === columnDef) {
             filter.filterText.forEach(function (filter, index) {
                 if (columnDef.format == DATE_FORMAT && columnDef.formatInstructions != null) {
-                    filter = moment(parseInt(filter)).format(columnDef.formatInstructions)
+                    filter = moment(parseInt(filter)).utcOffset(0).format(columnDef.formatInstructions)
                 }
 
                 selectedFilters.push(

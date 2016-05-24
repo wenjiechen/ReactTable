@@ -614,7 +614,7 @@ function buildFilterList(table, columnDef) {
     for (var i = 0; i < filterData.length; i++) {
         var label = filterData[i];
         if (columnDef.format == DATE_FORMAT && columnDef.formatInstructions != null) {
-            label = moment(parseInt(label)).format(columnDef.formatInstructions)
+            label = moment(parseInt(label)).utcOffset(0).format(columnDef.formatInstructions)
         }
 
         filterList.push(
@@ -627,7 +627,7 @@ function buildFilterList(table, columnDef) {
         if (filter.colDef === columnDef) {
             filter.filterText.forEach(function (filter, index) {
                 if (columnDef.format == DATE_FORMAT && columnDef.formatInstructions != null) {
-                    filter = moment(parseInt(filter)).format(columnDef.formatInstructions)
+                    filter = moment(parseInt(filter)).utcOffset(0).format(columnDef.formatInstructions)
                 }
 
                 selectedFilters.push(
@@ -1030,8 +1030,8 @@ function resolvePartitionName(subtotalBy, row, partitions) {
             for (var i = 0; i < subtotalBy.subtotalByRange.length; i++) {
                 if (row[subtotalBy.colTag] < subtotalBy.subtotalByRange[i]) {
                     if (subtotalBy.format == DATE_FORMAT && subtotalBy.formatInstructions != null) {
-                        var dateStr1 = moment(subtotalBy.subtotalByRange[i - 1]).format(subtotalBy.formatInstructions);
-                        var dateStr2 = moment(subtotalBy.subtotalByRange[i]).add(-1, "days").format(subtotalBy.formatInstructions);
+                        var dateStr1 = moment(subtotalBy.subtotalByRange[i - 1]).utcOffset(0).format(subtotalBy.formatInstructions);
+                        var dateStr2 = moment(subtotalBy.subtotalByRange[i]).add(-1, "days").utcOffset(0).format(subtotalBy.formatInstructions);
                         if (partitions == YEARLY) {
                             //dateStr1 = new Date(row[subtotalBy.colTag]).getFullYear();
                             //sectorName = subtotalBy.text + " " + dateStr1;
@@ -1041,7 +1041,7 @@ function resolvePartitionName(subtotalBy, row, partitions) {
                             sectorName = dateStr1;
                         }
                         else if (partitions == MONTHLY) {
-                            sectorName = moment(subtotalBy.subtotalByRange[i - 1]).format("MMM YYYY");
+                            sectorName = moment(subtotalBy.subtotalByRange[i - 1]).utcOffset(0).format("MMM YYYY");
                         }
                         else {
                             sectorName = dateStr1 + " - " + dateStr2;
@@ -1057,15 +1057,15 @@ function resolvePartitionName(subtotalBy, row, partitions) {
             if (!sectorName) {
                 if (subtotalBy.format == DATE_FORMAT && subtotalBy.formatInstructions != null) {
                     var date = new Date(subtotalBy.subtotalByRange[subtotalBy.subtotalByRange.length - 1]);
-                    var dateStr = moment(date).format(subtotalBy.formatInstructions);
+                    var dateStr = moment(date).utcOffset(0).format(subtotalBy.formatInstructions);
                     if (partitions == YEARLY) {
                         dateStr = new Date(dateStr).getFullYear();
                     }
                     else if (partitions == MONTHLY) {
-                        dateStr = moment(date).format("MMM YYYY");
+                        dateStr = moment(date).utcOffset(0).format("MMM YYYY");
                     }
                     else if (partitions == DAILY) {
-                        dateStr = moment(date).format("YYYY/MM/DD");
+                        dateStr = moment(date).utcOffset(0).format("YYYY/MM/DD");
                     }
                     sectorName = dateStr + "+";
                 }
@@ -1078,7 +1078,7 @@ function resolvePartitionName(subtotalBy, row, partitions) {
     }
     else {
         if (subtotalBy.format == DATE_FORMAT && subtotalBy.formatInstructions != null) {
-            sectorName = moment(row[subtotalBy.colTag]).format(subtotalBy.formatInstructions);
+            sectorName = moment(row[subtotalBy.colTag]).utcOffset(0).format(subtotalBy.formatInstructions);
         } else {
             sectorName = row[subtotalBy.colTag];
         }
@@ -1254,7 +1254,7 @@ function convertDateNumberToString(columnDef, value) {
         // if displayContent is a number, we assume displayContent is in milliseconds
         if (typeof value === "number") {
             if (columnDef.formatInstructions != null) { //If format instruction is specified
-                displayContent = moment(value).format(columnDef.formatInstructions)
+                displayContent = moment(value).utcOffset(0).format(columnDef.formatInstructions)
             } else {
                 displayContent = new Date(value).toLocaleDateString();
             }
@@ -4211,13 +4211,13 @@ function filterDateInPartitions(filterArr, columnDef, row){
             }
             break;
         case 'monthly':
-            var value = moment(row[columnDef.colTag]).format("MMM YYYY");
+            var value = moment(row[columnDef.colTag]).utcOffset(0).format("MMM YYYY");
             if(value === filterArr[0]){
                 found = true;
             }
             break;
         case 'yearly':
-            var value = moment(row[columnDef.colTag]).format("YYYY");
+            var value = moment(row[columnDef.colTag]).utcOffset(0).format("YYYY");
             if(value === filterArr[0]){
                 found = true;
             }

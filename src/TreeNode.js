@@ -236,13 +236,13 @@ function filterDateInPartitions(filterArr, columnDef, row){
             }
             break;
         case 'monthly':
-            var value = moment(row[columnDef.colTag]).format("MMM YYYY");
+            var value = moment(row[columnDef.colTag]).utcOffset(0).format("MMM YYYY");
             if(value === filterArr[0]){
                 found = true;
             }
             break;
         case 'yearly':
-            var value = moment(row[columnDef.colTag]).format("YYYY");
+            var value = moment(row[columnDef.colTag]).utcOffset(0).format("YYYY");
             if(value === filterArr[0]){
                 found = true;
             }
