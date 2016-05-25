@@ -88,7 +88,8 @@ function buildCellLookAndFeel(columnDef, row, isOmitted) {
 
     // determine alignment
     results.styles.textAlign = computeCellAlignment(formatConfig.alignment, row, columnDef);
-    results.styles.width = columnDef.text.length + "em";
+    var len = row[columnDef.text] ? row[columnDef.text].length : columnDef.text.length;
+    results.styles.width = len + "em";
     results.value = value;
 
     // show zero as blank
@@ -2623,6 +2624,15 @@ function adjustHeaders(adjustCount) {
     grandTotalFooter.width(headerContainerWidth);
     var grandTotalFooterCells = grandTotalFooter.find('.rt-grand-total-cell');
     var grandTotalFooterCellContents = grandTotalFooter.find('.rt-grand-total-cell-content');
+    // reset footer cell size
+    grandTotalFooterCellContents.each(function (index, cell) {
+        if (cell.style.width === 'inherit') {
+            var len = $(cell).text().length/2;
+            len = len < 6 ? 6 : len;
+            $(cell).css('width', len + "em");
+        }
+    });
+
     var adjustedSomething = false;
 
     var table = this;

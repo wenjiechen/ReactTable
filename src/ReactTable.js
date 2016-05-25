@@ -920,6 +920,15 @@ function adjustHeaders(adjustCount) {
     grandTotalFooter.width(headerContainerWidth);
     var grandTotalFooterCells = grandTotalFooter.find('.rt-grand-total-cell');
     var grandTotalFooterCellContents = grandTotalFooter.find('.rt-grand-total-cell-content');
+    // reset footer cell size
+    grandTotalFooterCellContents.each(function (index, cell) {
+        if (cell.style.width === 'inherit') {
+            var len = $(cell).text().length/2;
+            len = len < 6 ? 6 : len;
+            $(cell).css('width', len + "em");
+        }
+    });
+
     var adjustedSomething = false;
 
     var table = this;
