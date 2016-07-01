@@ -102,7 +102,11 @@ function buildSubtree(lrootNode, newSubtotal, state, partitions) {
         //find the leaf node
         for (var j = 0; j < lrootNode.ultimateChildren.length; j++) {
             //build subtree
-            populateChildNodesForRow(lrootNode, lrootNode.ultimateChildren[j], newSubtotal, partitions);
+            if(state.isJaggedTree) {
+                populateChildNodesForRowInJaggedTree(lrootNode, lrootNode.ultimateChildren[j], newSubtotal, partitions);
+            } else {
+                populateChildNodesForRow(lrootNode, lrootNode.ultimateChildren[j], newSubtotal, partitions);
+            }
         }
         for (var key in lrootNode._childrenSectorNameMap) {
             //generate subtree's aggregation info
@@ -259,6 +263,23 @@ function populateChildNodesForRow(currentNode, ultimateChild, subtotalBy, partit
         return;
     for (i = 0; i < subtotalBy.length; i++) {
         const sectoringResult = classifyRow(ultimateChild, subtotalBy[i], partitions);
+        currentNode.appendRowToChildren({
+            childSectorName: sectoringResult.sectorName,
+            childRow: ultimateChild,
+            sortIndex: sectoringResult.sortIndex,
+            subtotalByColumnDef: subtotalBy[i]
+        });
+    }
+}
+
+function populateChildNodesForRowInJaggedTree(currentNode, ultimateChild, subtotalBy, partitions) {
+    var i;
+    if (subtotalBy == null || subtotalBy.length == 0)
+        return;
+    for (i = 0; i < subtotalBy.length; i++) {
+        const sectoringResult = classifyRow(ultimateChild, subtotalBy[i], partitions);
+        // Don't add the 'Other' branch if this is a Jagged Tree
+        if(sectoringResult.sectorName === "Other") continue;
         currentNode.appendRowToChildren({
             childSectorName: sectoringResult.sectorName,
             childRow: ultimateChild,

@@ -48,8 +48,11 @@ function rasterizeTreeForRender() {
     const data = rasterizeTree({
         node: this.state.rootNode,
         firstColumn: this.state.columnDefs[0],
-        hideSingleSubtotalChild: this.props.hideSingleSubtotalChild
+        hideSingleSubtotalChild: this.props.hideSingleSubtotalChild,
+        isJaggedTree: this.props.isJaggedTree
     }, this.state.subtotalBy.length > 0);
+
+
 
     //those attributes of state is used by render() of ReactTable
     if (this.props.disableGrandTotal == true) {
@@ -74,6 +77,7 @@ function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, ski
     for (i = 0; i < node.children.length; i++) {
         intermediateResult = rasterizeTree({
             hideSingleSubtotalChild: options.hideSingleSubtotalChild,
+            isJaggedTree: options.isJaggedTree,
             node: node.children[i],
             firstColumn: firstColumn
         }, hasSubtotalBy, exportOutside, skipSubtotalRow, skipDetailRows, showHiddenSingleDetailRow);

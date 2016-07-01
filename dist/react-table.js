@@ -3015,7 +3015,8 @@ function ReactTableGetInitialState() {
 
         rasterizedData: null, // table data for render
         buildRasterizedData: true, // when change table structure such as sort or subtotal, set this to true.
-        hideSingleSubtotalChild: this.props.hideSingleSubtotalChild // if a subtotal level only has one child, hide the child
+        hideSingleSubtotalChild: this.props.hideSingleSubtotalChild, // if a subtotal level only has one child, hide the child
+        isJaggedTree: this.props.isJaggedTree // If the leafs of a tree are at varying, arbitrary depths
     };
 
     /**
@@ -3818,7 +3819,11 @@ function buildSubtree(lrootNode, newSubtotal, state, partitions) {
         //find the leaf node
         for (var j = 0; j < lrootNode.ultimateChildren.length; j++) {
             //build subtree
-            populateChildNodesForRow(lrootNode, lrootNode.ultimateChildren[j], newSubtotal, partitions);
+            if(state.isJaggedTree) {
+                populateChildNodesForRowInJaggedTree(lrootNode, lrootNode.ultimateChildren[j], newSubtotal, partitions);
+            } else {
+                populateChildNodesForRow(lrootNode, lrootNode.ultimateChildren[j], newSubtotal, partitions);
+            }
         }
         for (var key in lrootNode._childrenSectorNameMap) {
             //generate subtree's aggregation info
@@ -3983,7 +3988,23 @@ function populateChildNodesForRow(currentNode, ultimateChild, subtotalBy, partit
         });
     }
 }
-;/**
+
+function populateChildNodesForRowInJaggedTree(currentNode, ultimateChild, subtotalBy, partitions) {
+    var i;
+    if (subtotalBy == null || subtotalBy.length == 0)
+        return;
+    for (i = 0; i < subtotalBy.length; i++) {
+        const sectoringResult = classifyRow(ultimateChild, subtotalBy[i], partitions);
+        // Don't add the 'Other' branch if this is a Jagged Tree
+        if(sectoringResult.sectorName === "Other") continue;
+        currentNode.appendRowToChildren({
+            childSectorName: sectoringResult.sectorName,
+            childRow: ultimateChild,
+            sortIndex: sectoringResult.sortIndex,
+            subtotalByColumnDef: subtotalBy[i]
+        });
+    }
+};/**
  * Represents a grouping of table rows with references to children that are also grouping
  * of rows
  * @constructor
@@ -4415,8 +4436,11 @@ function rasterizeTreeForRender() {
     const data = rasterizeTree({
         node: this.state.rootNode,
         firstColumn: this.state.columnDefs[0],
-        hideSingleSubtotalChild: this.props.hideSingleSubtotalChild
+        hideSingleSubtotalChild: this.props.hideSingleSubtotalChild,
+        isJaggedTree: this.props.isJaggedTree
     }, this.state.subtotalBy.length > 0);
+
+
 
     //those attributes of state is used by render() of ReactTable
     if (this.props.disableGrandTotal == true) {
@@ -4441,6 +4465,7 @@ function _rasterizeChildren(flatData, options, hasSubtotalBy, exportOutside, ski
     for (i = 0; i < node.children.length; i++) {
         intermediateResult = rasterizeTree({
             hideSingleSubtotalChild: options.hideSingleSubtotalChild,
+            isJaggedTree: options.isJaggedTree,
             node: node.children[i],
             firstColumn: firstColumn
         }, hasSubtotalBy, exportOutside, skipSubtotalRow, skipDetailRows, showHiddenSingleDetailRow);
