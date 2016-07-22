@@ -279,9 +279,10 @@ function ReactTableHandleRemoveFilter(colDef, dontSet) {
         colDef.isFiltered = false;
         var fip = this.state.filterInPlace;
         delete fip[colDef.colTag];
+        this.state.rootNode = createNewRootNode(this.props, this.state);
+
         this.setState({
             filterInPlace: fip,
-            rootNode: this.state.rootNode,
             currentFilters: this.state.currentFilters,
             buildRasterizedData: true
         });
@@ -306,9 +307,11 @@ function ReactTableHandleRemoveAllFilters() {
     // Accessing this.state after calling this method can potentially return the existing value.
     // To avoid currentFilters haven't been changed when next time access it.
     this.state.currentFilters = [];
+
+    this.state.rootNode = createNewRootNode(this.props, this.state);
+
     this.setState({
         filterInPlace: {},
-        rootNode: this.state.rootNode,
         buildRasterizedData: true
     });
 }
