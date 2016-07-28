@@ -734,7 +734,8 @@ function buildHeaders(table) {
                         React.createElement(NumericFilterPanel, {clearFilter: table.handleClearFilter, 
                                             addFilter: table.handleColumnFilter, 
                                             colDef: columnDef, 
-                                            currentFilters: table.state.currentFilters}
+                                            currentFilters: table.state.currentFilters, 
+                                            table: table}
                         )
                     )) : null, 
                 table.state.filterInPlace[columnDef.colTag] ? buildFilterList(table, columnDef) : null, 
@@ -4200,8 +4201,8 @@ function filterInArray(filterArr, columnDef, row, caseSensitive) {
         }
     } else {
         if (columnDef.format === 'date' && filterArr[0] === 'partitions') {
-            var filterArrTmp = filterArr.slice(1,filterArr.length);
-            found = filterDateInPartitions(filterArrTmp, columnDef, row );
+            var filterArrTmp = filterArr.slice(1, filterArr.length);
+            found = filterDateInPartitions(filterArrTmp, columnDef, row);
 
         } else {
             found = null;
@@ -4226,9 +4227,9 @@ function filterInArray(filterArr, columnDef, row, caseSensitive) {
  * @param row
  * @param caseSensitive
  */
-function filterDateInPartitions(filterArr, columnDef, row){
+function filterDateInPartitions(filterArr, columnDef, row) {
     var found = false;
-    switch(columnDef.partitions.toLowerCase()){
+    switch (columnDef.partitions.toLowerCase()) {
         case 'daily':
             found = filterArr.some(function (filterText) {
                 return buildCellLookAndFeel(columnDef, row).value.toString().toUpperCase() === filterText.toUpperCase();
@@ -4240,19 +4241,19 @@ function filterDateInPartitions(filterArr, columnDef, row){
             var start = new Date(ranges[0]).getTime();
             var end = new Date(ranges[1]).getTime();
             var value = row[columnDef.colTag];
-            if(value >= start && value <= end){
+            if (value >= start && value <= end) {
                 found = true;
             }
             break;
         case 'monthly':
             var value = moment(row[columnDef.colTag]).utcOffset(0).format("MMM YYYY");
-            if(value === filterArr[0]){
+            if (value === filterArr[0]) {
                 found = true;
             }
             break;
         case 'yearly':
             var value = moment(row[columnDef.colTag]).utcOffset(0).format("YYYY");
-            if(value === filterArr[0]){
+            if (value === filterArr[0]) {
                 found = true;
             }
             break;
@@ -4285,28 +4286,33 @@ TreeNode.prototype.filterByTextColumn = function (columnDef, textToFilterBy, cas
         var showAtLeastOneChild = false;
         for (var i = 0; i < this.ultimateChildren.length; i++) {
             var uChild = this.ultimateChildren[i];
-            if (customFilterer) {
-                uChild.hiddenByFilter = !customFilterer(columnDef, uChild, textToFilterBy);
-            }
-            else {
-                var row = {};
-                row[columnDef.colTag] = uChild[columnDef.colTag];
-                if (columnDef.format === 'date' && !containsWildcart(textToFilterBy) && textToFilterBy[0] != 'partitions') {
-                    row[columnDef.colTag] = convertDateNumberToString(columnDef, row[columnDef.colTag]);
-                    textToFilterBy = textToFilterBy.map(function (filter) {
-                        var filterTmp = filter;
-                        if (typeof filter === 'string') {
-                            filterTmp = parseInt(filter);
-                            if (filterTmp < 100000) {
-                                filterTmp = filter;
-                            }
-                        }
-                        return convertDateNumberToString(columnDef, filterTmp);
-                    })
+            if (!uChild.hiddenByFilter) {
+            // if u child is not hidden
+                if (customFilterer) {
+                    uChild.hiddenByFilter = !customFilterer(columnDef, uChild, textToFilterBy);
                 }
-                uChild.hiddenByFilter = typeof row[columnDef.colTag] === 'undefined' || uChild.hiddenByFilter || filterInArray(textToFilterBy, columnDef, row, caseSensitive);
+                else {
+                    var row = {};
+                    row[columnDef.colTag] = uChild[columnDef.colTag];
+                    if (columnDef.format === 'date' && !containsWildcart(textToFilterBy) && textToFilterBy[0] != 'partitions') {
+                        row[columnDef.colTag] = convertDateNumberToString(columnDef, row[columnDef.colTag]);
+                        textToFilterBy = textToFilterBy.map(function (filter) {
+                            var filterTmp = filter;
+                            if (typeof filter === 'string') {
+                                filterTmp = parseInt(filter);
+                                if (filterTmp < 100000) {
+                                    filterTmp = filter;
+                                }
+                            }
+                            return convertDateNumberToString(columnDef, filterTmp);
+                        })
+                    }
+                    uChild.hiddenByFilter = typeof row[columnDef.colTag] === 'undefined' || uChild.hiddenByFilter || filterInArray(textToFilterBy, columnDef, row, caseSensitive);
+                }
             }
+
             showAtLeastOneChild = showAtLeastOneChild || !uChild.hiddenByFilter;
+
         }
         this.hiddenByFilter = !showAtLeastOneChild;
     }
@@ -4331,31 +4337,36 @@ TreeNode.prototype.filterByNumericColumn = function (columnDef, filterData) {
         var showAtLeastOneChild = false;
         for (var i = 0; i < this.ultimateChildren.length; i++) {
             var uChild = this.ultimateChildren[i];
-            var row = {};
-            row[columnDef.colTag] = uChild[columnDef.colTag];
-            var filterOutNode = false;
-            var formatConfig = buildLAFConfigObject(columnDef);
-            var value = row[columnDef.colTag] * parseFloat(formatConfig.multiplier);
-            for (var j = 0; j < filterData.length; j++) {
-                if (filterData[j].gt !== undefined) {
-                    if (!(value > filterData[j].gt))
-                        filterOutNode = true;
-                }
-                else if (filterData[j].lt !== undefined) {
-                    if (!(value < filterData[j].lt))
-                        filterOutNode = true;
-                }
-                else if (filterData[j].eq !== undefined) {
-                    // rounding
-                    value = value.toFixed(formatConfig.roundTo);
-                    var filterValue = filterData[j].eq.toString().replace(/,/g, '');
-                    if (!(parseFloat(value) == parseFloat(filterValue))) {
-                        filterOutNode = true;
+
+            if (!uChild.hiddenByFilter) {
+                // if child is not hidden, filter it
+                var row = {};
+                row[columnDef.colTag] = uChild[columnDef.colTag];
+                var filterOutNode = false;
+                var formatConfig = buildLAFConfigObject(columnDef);
+                var value = row[columnDef.colTag] * parseFloat(formatConfig.multiplier);
+                for (var j = 0; j < filterData.length; j++) {
+                    if (filterData[j].gt !== undefined) {
+                        if (!(value > filterData[j].gt))
+                            filterOutNode = true;
+                    }
+                    else if (filterData[j].lt !== undefined) {
+                        if (!(value < filterData[j].lt))
+                            filterOutNode = true;
+                    }
+                    else if (filterData[j].eq !== undefined) {
+                        // rounding
+                        value = value.toFixed(formatConfig.roundTo);
+                        var filterValue = filterData[j].eq.toString().replace(/,/g, '');
+                        if (!(parseFloat(value) == parseFloat(filterValue))) {
+                            filterOutNode = true;
+                        }
                     }
                 }
+
+                uChild.hiddenByFilter = filterOutNode;
             }
 
-            uChild.hiddenByFilter = filterOutNode;
             showAtLeastOneChild = showAtLeastOneChild || !uChild.hiddenByFilter;
         }
         this.hiddenByFilter = !showAtLeastOneChild;

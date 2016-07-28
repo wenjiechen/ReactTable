@@ -589,7 +589,8 @@ function buildHeaders(table) {
                         <NumericFilterPanel clearFilter={table.handleClearFilter}
                                             addFilter={table.handleColumnFilter}
                                             colDef={columnDef}
-                                            currentFilters={table.state.currentFilters}>
+                                            currentFilters={table.state.currentFilters}
+                                            table={table}>
                         </NumericFilterPanel>
                     </div>) : null }
                 {table.state.filterInPlace[columnDef.colTag] ? buildFilterList(table, columnDef) : null}
